@@ -14,6 +14,7 @@ import { AppProvider } from '@/components/AppProvider';
 import { AppConfig } from '@/contexts/AppContext';
 import AppRouter from './AppRouter';
 import { CaribbeanProfileProvider } from '@/components/CaribbeanProfileProvider';
+import { ServiceWorkerProvider } from '@/components/ServiceWorkerProvider';
 
 const head = createHead({
   plugins: [
@@ -51,13 +52,15 @@ export function App() {
           <NostrLoginProvider storageKey='nostr:login'>
             <NostrProvider>
               <TooltipProvider>
-                <CaribbeanProfileProvider>
-                  <Toaster />
-                  <Sonner />
-                  <Suspense>
-                    <AppRouter />
-                  </Suspense>
-                </CaribbeanProfileProvider>
+                <ServiceWorkerProvider>
+                  <CaribbeanProfileProvider>
+                    <Toaster />
+                    <Sonner />
+                    <Suspense>
+                      <AppRouter />
+                    </Suspense>
+                  </CaribbeanProfileProvider>
+                </ServiceWorkerProvider>
               </TooltipProvider>
             </NostrProvider>
           </NostrLoginProvider>

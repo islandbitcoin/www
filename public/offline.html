@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - Island Bitcoin</title>
+  <meta name="description" content="You're offline. Check your internet connection.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Offline - Island Bitcoin">
+  <meta property="og:description" content="You're offline. Check your internet connection.">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #F7E7CE;
+      color: #00A5CF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      text-align: center;
+      max-width: 400px;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(45deg, #FF6B35, #00A5CF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    p {
+      font-size: 1.125rem;
+      line-height: 1.6;
+      color: #4a5568;
+      margin-bottom: 2rem;
+    }
+    .icon {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 2rem;
+      background: linear-gradient(135deg, #00A5CF 0%, #40E0D0 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+    }
+    button {
+      background: #FF6B35;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #e55a2b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">🏝️</div>
+    <h1>You're Offline</h1>
+    <p>
+      No worries, you're still in paradise! Your connection seems to be taking a break. 
+      Check your internet and we'll get you back to stacking sats in no time.
+    </p>
+    <button onclick="window.location.reload()">Try Again</button>
+  </div>
+</body>
+</html>

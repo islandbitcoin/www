@@ -11,6 +11,9 @@ import { NostrPostBox } from '@/components/NostrPostBox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { siteConfig } from '@/config/site.config';
 import { BitcoinPrice } from '@/components/BitcoinPrice';
+import { MediaGallery } from '@/components/MediaGallery';
+import { NotificationBell } from '@/components/NotificationBell';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 const Index = () => {
   useSeoMeta({
@@ -19,6 +22,7 @@ const Index = () => {
   });
 
   const [isNostrFeedOpen, setIsNostrFeedOpen] = useState(false);
+  const { user } = useCurrentUser();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-caribbean-sand via-white to-caribbean-sand/30">
@@ -32,7 +36,8 @@ const Index = () => {
               </span>
               <Zap className="w-5 h-5 text-caribbean-mango" />
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
+              {user && <NotificationBell />}
               <LoginArea className="max-w-40" />
               <Sheet open={isNostrFeedOpen} onOpenChange={setIsNostrFeedOpen}>
                 <SheetTrigger asChild>
@@ -174,15 +179,91 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="aspect-square bg-gradient-to-br from-caribbean-ocean/20 to-caribbean-sunset/20 rounded-lg overflow-hidden group cursor-pointer">
-                <div className="w-full h-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Image className="w-12 h-12 text-caribbean-ocean/50" />
-                </div>
-              </div>
-            ))}
-          </div>
+          <MediaGallery 
+            items={[
+              {
+                id: '1',
+                url: 'https://images.unsplash.com/photo-1550785274-eb15d7b41e98?w=800',
+                thumbnail: 'https://images.unsplash.com/photo-1550785274-eb15d7b41e98?w=400',
+                title: 'Bitcoin Beach Meetup',
+                description: 'Community gathering at sunset',
+                author: 'Island Bitcoin',
+                date: 'March 2024',
+                type: 'image' as const,
+              },
+              {
+                id: '2',
+                url: 'https://images.unsplash.com/photo-1519452575417-564c1401ecc0?w=800',
+                thumbnail: 'https://images.unsplash.com/photo-1519452575417-564c1401ecc0?w=400',
+                title: 'Lightning Workshop',
+                description: 'Learning to set up Lightning nodes',
+                author: 'Community',
+                date: 'March 2024',
+                type: 'image' as const,
+              },
+              {
+                id: '3',
+                url: 'https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?w=800',
+                thumbnail: 'https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?w=400',
+                title: 'Caribbean Bitcoin Conference',
+                description: 'Annual gathering of Bitcoin enthusiasts',
+                author: 'Island Bitcoin',
+                date: 'February 2024',
+                type: 'image' as const,
+              },
+              {
+                id: '4',
+                url: 'https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=800',
+                thumbnail: 'https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=400',
+                title: 'Beach Networking',
+                description: 'Making connections on island time',
+                author: 'Community',
+                date: 'February 2024',
+                type: 'image' as const,
+              },
+              {
+                id: '5',
+                url: 'https://images.unsplash.com/photo-1476304884326-cd2c88572c5f?w=800',
+                thumbnail: 'https://images.unsplash.com/photo-1476304884326-cd2c88572c5f?w=400',
+                title: 'Sunset Sessions',
+                description: 'Evening discussions about Bitcoin',
+                author: 'Island Bitcoin',
+                date: 'January 2024',
+                type: 'image' as const,
+              },
+              {
+                id: '6',
+                url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800',
+                thumbnail: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400',
+                title: 'Island Vibes',
+                description: 'Bitcoin culture in paradise',
+                author: 'Community',
+                date: 'January 2024',
+                type: 'image' as const,
+              },
+              {
+                id: '7',
+                url: 'https://images.unsplash.com/photo-1533106418989-88406c7cc8ca?w=800',
+                thumbnail: 'https://images.unsplash.com/photo-1533106418989-88406c7cc8ca?w=400',
+                title: 'Community BBQ',
+                description: 'Food, friends, and Bitcoin',
+                author: 'Island Bitcoin',
+                date: 'December 2023',
+                type: 'image' as const,
+              },
+              {
+                id: '8',
+                url: 'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800',
+                thumbnail: 'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=400',
+                title: 'Paradise Found',
+                description: 'Where Bitcoin meets the beach',
+                author: 'Community',
+                date: 'December 2023',
+                type: 'image' as const,
+              },
+            ]}
+            className="max-w-6xl mx-auto"
+          />
 
           <div className="text-center mt-8">
             <Button variant="outline" className="border-caribbean-ocean text-caribbean-ocean hover:bg-caribbean-ocean/10">
