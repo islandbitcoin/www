@@ -13,6 +13,7 @@ import { NostrLoginProvider } from '@nostrify/react/login';
 import { AppProvider } from '@/components/AppProvider';
 import { AppConfig } from '@/contexts/AppContext';
 import AppRouter from './AppRouter';
+import { CaribbeanProfileProvider } from '@/components/CaribbeanProfileProvider';
 
 const head = createHead({
   plugins: [
@@ -50,11 +51,13 @@ export function App() {
           <NostrLoginProvider storageKey='nostr:login'>
             <NostrProvider>
               <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <Suspense>
-                  <AppRouter />
-                </Suspense>
+                <CaribbeanProfileProvider>
+                  <Toaster />
+                  <Sonner />
+                  <Suspense>
+                    <AppRouter />
+                  </Suspense>
+                </CaribbeanProfileProvider>
               </TooltipProvider>
             </NostrProvider>
           </NostrLoginProvider>

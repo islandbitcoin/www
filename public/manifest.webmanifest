@@ -1,0 +1,21 @@
+{
+  "name": "Island Bitcoin",
+  "short_name": "Island BTC",
+  "description": "Caribbean Bitcoin Community - Events, education, and connection through Nostr",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7E7CE",
+  "theme_color": "#FF6B35",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

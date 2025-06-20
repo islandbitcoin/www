@@ -19,7 +19,20 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Outfit Variable', 'Outfit', 'system-ui', 'sans-serif'],
+			},
 			colors: {
+				caribbean: {
+					ocean: '#00A5CF',
+					sunset: '#FF6B35',
+					sand: '#F7E7CE',
+					palm: '#228B22',
+					coral: '#FF7F50',
+					turquoise: '#40E0D0',
+					mango: '#FFBA08',
+					hibiscus: '#FF1744',
+				},
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
