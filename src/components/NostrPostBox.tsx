@@ -6,6 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Send, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
+import { sanitizeNostrContent } from '@/lib/sanitize';
+import { postRateLimiter } from '@/lib/rateLimit';
 
 export function NostrPostBox() {
   const [content, setContent] = useState('');
@@ -25,10 +27,23 @@ export function NostrPostBox() {
       return;
     }
 
+    // Check rate limit
+    if (!postRateLimiter.canMakeRequest(user?.pubkey || 'anonymous')) {
+      toast({
+        title: 'Slow down!',
+        description: 'You\'re posting too quickly. Take a breath and try again in a moment.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Sanitize content before posting
+    const sanitizedContent = sanitizeNostrContent(content.trim());
+
     createEvent(
       { 
         kind: 1, 
-        content: content.trim(),
+        content: sanitizedContent,
         tags: [['t', 'islandbitcoin']],
       },
       {

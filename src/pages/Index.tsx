@@ -9,11 +9,13 @@ import { Link } from 'react-router-dom';
 import { NostrFeed } from '@/components/NostrFeed';
 import { NostrPostBox } from '@/components/NostrPostBox';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { siteConfig } from '@/config/site.config';
+import { BitcoinPrice } from '@/components/BitcoinPrice';
 
 const Index = () => {
   useSeoMeta({
-    title: 'Island Bitcoin - Caribbean Bitcoin Community',
-    description: 'Join the vibrant Bitcoin community in the Caribbean. Events, education, and connection through Nostr.',
+    title: `${siteConfig.name} - ${siteConfig.community.location} Bitcoin Community`,
+    description: siteConfig.description,
   });
 
   const [isNostrFeedOpen, setIsNostrFeedOpen] = useState(false);
@@ -26,7 +28,7 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold bg-gradient-to-r from-caribbean-sunset to-caribbean-mango bg-clip-text text-transparent">
-                Island Bitcoin
+                {siteConfig.name}
               </span>
               <Zap className="w-5 h-5 text-caribbean-mango" />
             </div>
@@ -46,8 +48,9 @@ const Index = () => {
                         Live updates from Island Bitcoin members
                       </p>
                     </div>
-                    <div className="p-4">
+                    <div className="p-4 space-y-4">
                       <NostrPostBox />
+                      {siteConfig.features.bitcoinPrice && <BitcoinPrice />}
                     </div>
                     <ScrollArea className="flex-1 px-4 pb-4">
                       <NostrFeed />
@@ -70,10 +73,10 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-caribbean-ocean via-caribbean-turquoise to-caribbean-palm bg-clip-text text-transparent animate-gradient-x">
-              Bitcoin in Paradise
+              {siteConfig.tagline}
             </h1>
             <p className="text-lg sm:text-xl lg:text-2xl mb-6 sm:mb-8 text-gray-700 px-4 sm:px-0">
-              Join the Caribbean's vibrant Bitcoin community. Connect, learn, and build the future of money on island time.
+              {siteConfig.description}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="bg-caribbean-sunset hover:bg-caribbean-sunset/90 text-white font-semibold px-8">
@@ -196,7 +199,7 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="text-center md:text-left">
               <p className="text-sm text-gray-600">
-                © 2024 Island Bitcoin. Built with ₿ and 🏝️
+                © 2024 {siteConfig.name}. Built with ₿ and 🏝️
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 Vibed with <Link to="https://soapbox.pub/tools/mkstack/" className="text-caribbean-ocean hover:underline">MKStack</Link>

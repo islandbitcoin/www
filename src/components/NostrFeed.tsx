@@ -10,6 +10,7 @@ import { genUserName } from '@/lib/genUserName';
 import { NoteContent } from '@/components/NoteContent';
 import { Heart, MessageCircle, Repeat2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { siteConfig } from '@/config/site.config';
 
 interface NostrFeedProps {
   domains?: string[];
@@ -93,7 +94,7 @@ function LoadingSkeleton() {
   );
 }
 
-export function NostrFeed({ domains = ['islandbitcoin.com', 'getflash.io', 'flashapp.me'] }: NostrFeedProps) {
+export function NostrFeed({ domains = siteConfig.nostr.communityDomains }: NostrFeedProps) {
   const { nostr } = useNostr();
 
   const { data: posts, isLoading } = useQuery({
