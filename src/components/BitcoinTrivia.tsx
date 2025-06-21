@@ -3,11 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Trophy, Zap, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { Brain, Trophy, Zap, RefreshCw, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
 import { useGameification } from '@/hooks/useGameification';
+import { useGameWallet } from '@/hooks/useGameWallet';
 import { secureStorage } from '@/lib/secureStorage';
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface TriviaQuestion {
   id: string;
@@ -191,6 +193,7 @@ export function BitcoinTrivia() {
   });
   const { toast } = useToast();
   const { recordActivity, checkAchievements } = useGameification();
+  const { config, awardSats, canUserEarnMore, userBalance } = useGameWallet();
 
   // Get a random question that hasn't been answered yet
   const getNextQuestion = () => {
@@ -213,16 +216,19 @@ export function BitcoinTrivia() {
     }
   }, []);
 
-  const handleAnswer = (answerIndex: number) => {
+  const handleAnswer = async (answerIndex: number) => {
     if (showResult) return;
     
     setSelectedAnswer(answerIndex);
     setShowResult(true);
     
     const isCorrect = answerIndex === currentQuestion!.correctAnswer;
+    
+    // Use configured rewards from game wallet
     const satsReward = isCorrect ? 
-      (currentQuestion!.difficulty === 'easy' ? 10 : 
-       currentQuestion!.difficulty === 'medium' ? 25 : 50) : 0;
+      (currentQuestion!.difficulty === 'easy' ? config.gameRewards.triviaEasy : 
+       currentQuestion!.difficulty === 'medium' ? config.gameRewards.triviaMedium : 
+       config.gameRewards.triviaHard) : 0;
     
     const newProgress: TriviaProgress = {
       totalQuestionsAnswered: progress.totalQuestionsAnswered + 1,
@@ -242,6 +248,22 @@ export function BitcoinTrivia() {
     // Track activity
     recordActivity({ minutesActive: 1 });
     
+    // Award real sats if correct
+    if (isCorrect && satsReward > 0) {
+      const awarded = await awardSats(satsReward, 'trivia', {
+        questionId: currentQuestion!.id,
+        difficulty: currentQuestion!.difficulty,
+        streak: newProgress.currentStreak,
+      });
+      
+      if (!awarded) {
+        // Revert sats earned if award failed
+        newProgress.satsEarned -= satsReward;
+        setProgress(newProgress);
+        secureStorage.set('bitcoinTriviaProgress', newProgress);
+      }
+    }
+    
     // Check achievements
     if (isCorrect) {
       checkAchievements('trivia-correct', { streak: newProgress.currentStreak });
@@ -252,14 +274,6 @@ export function BitcoinTrivia() {
         });
       }
     }
-    
-    // Show result toast
-    toast({
-      title: isCorrect ? '✅ Correct!' : '❌ Incorrect',
-      description: isCorrect ? 
-        `You earned ${satsReward} sats!` : 
-        'Keep learning, you\'ll get the next one!',
-    });
   };
 
   const nextQuestion = () => {
@@ -289,7 +303,7 @@ export function BitcoinTrivia() {
           <div className="text-right">
             <div className="flex items-center gap-2 justify-end">
               <Zap className="h-4 w-4 text-caribbean-mango" />
-              <span className="font-semibold">{progress.satsEarned} sats</span>
+              <span className="font-semibold">{userBalance?.balance || 0} sats</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Streak: {progress.currentStreak}
@@ -298,6 +312,16 @@ export function BitcoinTrivia() {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Daily limit warning */}
+        {!canUserEarnMore.allowed && (
+          <Alert className="border-yellow-200 bg-yellow-50">
+            <AlertCircle className="h-4 w-4 text-yellow-600" />
+            <AlertDescription>
+              {canUserEarnMore.reason}
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {/* Progress Stats */}
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>

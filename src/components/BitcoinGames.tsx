@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Brain, Coins, Gamepad2, Trophy } from 'lucide-react';
 import { BitcoinTrivia } from './BitcoinTrivia';
 import { SatoshiStacker } from './SatoshiStacker';
+import { SatsBalance } from './SatsBalance';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
 
@@ -41,11 +42,13 @@ export function BitcoinGames() {
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold text-gray-900">Bitcoin Education Games</h2>
         <p className="text-muted-foreground">
-          Learn about Bitcoin while earning virtual sats and achievements!
+          Learn about Bitcoin while earning real sats!
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="trivia" className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
@@ -65,6 +68,12 @@ export function BitcoinGames() {
           <SatoshiStacker />
         </TabsContent>
       </Tabs>
+        </div>
+        
+        <div>
+          <SatsBalance />
+        </div>
+      </div>
     </div>
   );
 }
