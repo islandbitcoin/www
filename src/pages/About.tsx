@@ -273,13 +273,25 @@ export default function About() {
               no configuration required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-caribbean-ocean hover:bg-caribbean-ocean/90">
-                <Copy className="mr-2 h-4 w-4" />
-                Fork on GitHub
-              </Button>
-              <Button variant="outline" className="border-caribbean-ocean text-caribbean-ocean hover:bg-caribbean-ocean/10">
-                View Documentation
-              </Button>
+              <a 
+                href="https://github.com/islandbitcoin/www/fork" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <Button className="bg-caribbean-ocean hover:bg-caribbean-ocean/90">
+                  <Copy className="mr-2 h-4 w-4" />
+                  Fork on GitHub
+                </Button>
+              </a>
+              <a 
+                href="https://github.com/islandbitcoin/www#readme" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <Button variant="outline" className="border-caribbean-ocean text-caribbean-ocean hover:bg-caribbean-ocean/10">
+                  View Documentation
+                </Button>
+              </a>
             </div>
           </div>
         </div>

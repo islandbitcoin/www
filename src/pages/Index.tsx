@@ -98,10 +98,21 @@ const Index = () => {
               {siteConfig.description}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-caribbean-sunset hover:bg-caribbean-sunset/90 text-white font-semibold px-8">
+              <Button 
+                size="lg" 
+                className="bg-caribbean-sunset hover:bg-caribbean-sunset/90 text-white font-semibold px-8"
+                onClick={() => setIsNostrFeedOpen(true)}
+              >
                 Join the Community
               </Button>
-              <Button size="lg" variant="outline" className="border-caribbean-ocean text-caribbean-ocean hover:bg-caribbean-ocean/10">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-caribbean-ocean text-caribbean-ocean hover:bg-caribbean-ocean/10"
+                onClick={() => {
+                  document.getElementById('events-section')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
                 <Calendar className="mr-2 h-5 w-5" />
                 View Events
               </Button>
@@ -111,7 +122,7 @@ const Index = () => {
       </section>
 
       {/* Events Calendar Section */}
-      <section className="py-12 sm:py-16">
+      <section id="events-section" className="py-12 sm:py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 text-gray-900">
@@ -174,9 +185,15 @@ const Index = () => {
           </div>
 
           <div className="text-center mt-8">
-            <Button variant="outline" className="border-caribbean-ocean text-caribbean-ocean hover:bg-caribbean-ocean/10">
-              View Full Calendar
-            </Button>
+            <a 
+              href="https://github.com/islandbitcoin/www/issues/new?title=Event%20Submission&body=Please%20describe%20your%20Bitcoin%20event%20including%20date,%20location,%20and%20details"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline" className="border-caribbean-ocean text-caribbean-ocean hover:bg-caribbean-ocean/10">
+                Submit an Event
+              </Button>
+            </a>
           </div>
         </div>
       </section>
@@ -280,10 +297,16 @@ const Index = () => {
           />
 
           <div className="text-center mt-8">
-            <Button variant="outline" className="border-caribbean-ocean text-caribbean-ocean hover:bg-caribbean-ocean/10">
-              <Image className="mr-2 h-4 w-4" />
-              View Full Gallery
-            </Button>
+            <a 
+              href="https://github.com/islandbitcoin/www/issues/new?title=Media%20Submission&body=Please%20share%20your%20Bitcoin%20community%20photos%20or%20videos%20(include%20links%20and%20description)"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline" className="border-caribbean-ocean text-caribbean-ocean hover:bg-caribbean-ocean/10">
+                <Image className="mr-2 h-4 w-4" />
+                Submit Media
+              </Button>
+            </a>
           </div>
         </div>
       </section>
@@ -313,12 +336,24 @@ const Index = () => {
                   About
                 </Button>
               </Link>
-              <Button variant="ghost" size="sm" className="text-caribbean-ocean hover:text-caribbean-ocean/80 text-xs sm:text-sm">
-                Media Kit
-              </Button>
-              <Button variant="ghost" size="sm" className="text-caribbean-ocean hover:text-caribbean-ocean/80 text-xs sm:text-sm">
-                Contact
-              </Button>
+              <a 
+                href="https://github.com/islandbitcoin/www/tree/main/media"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button variant="ghost" size="sm" className="text-caribbean-ocean hover:text-caribbean-ocean/80 text-xs sm:text-sm">
+                  Media Kit
+                </Button>
+              </a>
+              <a 
+                href="https://github.com/islandbitcoin/www/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button variant="ghost" size="sm" className="text-caribbean-ocean hover:text-caribbean-ocean/80 text-xs sm:text-sm">
+                  Contact
+                </Button>
+              </a>
             </div>
           </div>
         </div>
