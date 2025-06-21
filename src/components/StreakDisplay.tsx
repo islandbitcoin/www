@@ -7,7 +7,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useGameification } from '@/hooks/useGameification';
 import { cn } from '@/lib/utils';
 
-export function StreakDisplay() {
+interface StreakDisplayProps {
+  compact?: boolean;
+}
+
+export function StreakDisplay({ compact = false }: StreakDisplayProps) {
   const { streak, level, stats, useRecoveryToken } = useGameification();
 
   const getFlameColor = (days: number) => {
@@ -25,6 +29,30 @@ export function StreakDisplay() {
     if (days < 100) return 'h-14 w-14';
     return 'h-16 w-16';
   };
+
+  // Compact version for sidebar
+  if (compact) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center gap-2 text-sm cursor-pointer">
+              <Flame className={cn('h-4 w-4', getFlameColor(streak.currentStreak))} />
+              <span className="font-semibold">{streak.currentStreak}</span>
+              <span className="text-muted-foreground">streak</span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div className="space-y-1">
+              <p>🔥 {streak.currentStreak} day streak!</p>
+              <p className="text-xs">Best: {streak.longestStreak} days</p>
+              <p className="text-xs">Level {level.level} • {level.points} pts</p>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
 
   return (
     <Card className="border-caribbean-sand hover:border-caribbean-ocean/30 transition-all">

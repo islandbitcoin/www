@@ -59,22 +59,21 @@ const Index = () => {
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-full sm:w-[400px] p-0 flex flex-col">
-                  <div className="p-6 pb-4 border-b border-caribbean-sand flex-shrink-0">
-                    <h3 className="text-lg font-semibold">Community Feed</h3>
-                    <p className="text-sm text-muted-foreground mt-1">Live updates from Island Bitcoin members</p>
-                  </div>
-                  <div className="flex-1 overflow-hidden flex flex-col">
-                    <div className="p-4 space-y-4 flex-shrink-0">
-                      <NostrPostBox />
-                      {user && <StreakDisplay />}
-                      {siteConfig.features.bitcoinPrice && <BitcoinPrice />}
-                    </div>
-                    <ScrollArea className="flex-1 px-4 min-h-0">
-                      <div className="pb-4">
-                        <NostrFeed />
+                <SheetContent side="right" className="w-full sm:w-[400px] p-0 overflow-y-auto">
+                  <div className="min-h-full">
+                    <div className="sticky top-0 z-10 bg-white border-b border-caribbean-sand">
+                      <div className="p-4">
+                        <h3 className="text-lg font-semibold">Community Feed</h3>
+                        <div className="flex items-center gap-3 mt-2">
+                          {siteConfig.features.bitcoinPrice && <BitcoinPrice compact />}
+                          {user && <StreakDisplay compact />}
+                        </div>
                       </div>
-                    </ScrollArea>
+                    </div>
+                    <div className="p-4 space-y-4">
+                      <NostrPostBox />
+                      <NostrFeed limit={10} />
+                    </div>
                   </div>
                 </SheetContent>
               </Sheet>

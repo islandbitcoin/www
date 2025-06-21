@@ -14,6 +14,7 @@ import { siteConfig } from '@/config/site.config';
 
 interface NostrFeedProps {
   domains?: string[];
+  limit?: number;
 }
 
 function PostCard({ event }: { event: NostrEvent }) {
@@ -94,11 +95,11 @@ function LoadingSkeleton() {
   );
 }
 
-export function NostrFeed({ domains = siteConfig.nostr.communityDomains }: NostrFeedProps) {
+export function NostrFeed({ domains = siteConfig.nostr.communityDomains, limit = 50 }: NostrFeedProps) {
   const { nostr } = useNostr();
 
   const { data: posts, isLoading } = useQuery({
-    queryKey: ['nostr-feed', domains],
+    queryKey: ['nostr-feed', domains, limit],
     queryFn: async (c) => {
       const signal = AbortSignal.any([c.signal, AbortSignal.timeout(5000)]);
       
@@ -128,7 +129,7 @@ export function NostrFeed({ domains = siteConfig.nostr.communityDomains }: Nostr
         {
           kinds: [1],
           authors: validPubkeys,
-          limit: 50,
+          limit: limit,
         }
       ], { signal });
 

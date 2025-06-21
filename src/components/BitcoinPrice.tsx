@@ -35,7 +35,11 @@ async function fetchBitcoinPrice(): Promise<PriceData> {
   }
 }
 
-export function BitcoinPrice() {
+interface BitcoinPriceProps {
+  compact?: boolean;
+}
+
+export function BitcoinPrice({ compact = false }: BitcoinPriceProps) {
   const [fiatAmount, setFiatAmount] = useState('100');
   const [satsAmount, setSatsAmount] = useState('');
   const currency = siteConfig.community.currency;
@@ -84,6 +88,20 @@ export function BitcoinPrice() {
   }
   
   const isPositive = priceData.change24h > 0;
+  
+  // Compact version for sidebar
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2 text-sm">
+        <span className="font-semibold">₿</span>
+        <span>{currency === 'USD' ? '$' : currency}{priceData.price.toLocaleString()}</span>
+        <span className={`flex items-center gap-0.5 text-xs ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+          {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+          {Math.abs(priceData.change24h).toFixed(1)}%
+        </span>
+      </div>
+    );
+  }
   
   return (
     <Card className="border-caribbean-sand hover:border-caribbean-ocean/30 transition-all">
