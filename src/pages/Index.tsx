@@ -308,9 +308,11 @@ const Index = () => {
               </p>
             </div>
             <div className="flex gap-2 sm:gap-4">
-              <Button variant="ghost" size="sm" className="text-caribbean-ocean hover:text-caribbean-ocean/80 text-xs sm:text-sm">
-                About
-              </Button>
+              <Link to="/about">
+                <Button variant="ghost" size="sm" className="text-caribbean-ocean hover:text-caribbean-ocean/80 text-xs sm:text-sm">
+                  About
+                </Button>
+              </Link>
               <Button variant="ghost" size="sm" className="text-caribbean-ocean hover:text-caribbean-ocean/80 text-xs sm:text-sm">
                 Media Kit
               </Button>

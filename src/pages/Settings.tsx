@@ -1,12 +1,14 @@
 import { useSeoMeta } from '@unhead/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, User, Palette, Bell } from 'lucide-react';
+import { Shield, User, Palette, Bell, Zap, ArrowLeft } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { PrivacySettings } from '@/components/PrivacySettings';
 import { EditProfileForm } from '@/components/EditProfileForm';
 import { siteConfig } from '@/config/site.config';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 export default function Settings() {
   useSeoMeta({
@@ -43,8 +45,28 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-caribbean-sand via-white to-caribbean-sand/30 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-b from-caribbean-sand via-white to-caribbean-sand/30">
+      {/* Header */}
+      <header className="border-b border-caribbean-sand bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <span className="text-2xl font-bold bg-gradient-to-r from-caribbean-sunset to-caribbean-mango bg-clip-text text-transparent">
+                {siteConfig.name}
+              </span>
+              <Zap className="w-5 h-5 text-caribbean-mango" />
+            </Link>
+            <Link to="/">
+              <Button variant="outline" size="sm" className="border-caribbean-ocean text-caribbean-ocean hover:bg-caribbean-ocean/10">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 max-w-4xl py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
           <p className="text-muted-foreground mt-2">
