@@ -27,7 +27,7 @@ export function DirectMessageDialog({
   const [message, setMessage] = useState('');
   const [isEphemeral, setIsEphemeral] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const { sendMessage } = useEncryptedDMs();
+  const { sendDM } = useEncryptedDMs();
   const { toast } = useToast();
   const author = useAuthor(recipientPubkey);
   
@@ -48,7 +48,7 @@ export function DirectMessageDialog({
     setIsSending(true);
     
     try {
-      await sendMessage(recipientPubkey, message.trim(), {
+      await sendDM(recipientPubkey, message.trim(), {
         ephemeral: isEphemeral,
       });
       
