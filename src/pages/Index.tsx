@@ -1,7 +1,7 @@
 import { useSeoMeta } from "@unhead/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Image, Users, Zap, Menu, Settings as SettingsIcon } from "lucide-react";
+import { Calendar, Image, Users, Zap, Menu, Settings as SettingsIcon, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LoginArea } from "@/components/auth/LoginArea";
@@ -17,6 +17,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { StreakDisplay } from "@/components/StreakDisplay";
 import { DirectMessages } from "@/components/DirectMessages";
 import { BitcoinGames } from "@/components/BitcoinGames";
+import { ContactButton } from "@/components/ContactButton";
 
 const Index = () => {
   useSeoMeta({
@@ -326,7 +327,7 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
 
           <div className="text-center mt-8">
             <a
-              href={`https://github.com/islandbitcoin/www/issues/new?title=Media%20Submission:%20[Your%20Title]&body=${encodeURIComponent(`## Media Submission Template
+              href={`https://github.com/islandbitcoin/islandbitcoin-community/issues/new?title=Media%20Submission:%20[Your%20Title]&body=${encodeURIComponent(`## Media Submission Template
 
 **Media Title:** [e.g., Bitcoin Beach Meetup]
 
@@ -397,16 +398,16 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
                   About
                 </Button>
               </Link>
-              <a href="https://github.com/islandbitcoin/www/tree/main/media" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/islandbitcoin/islandbitcoin-community/tree/main/mediakit" target="_blank" rel="noopener noreferrer">
                 <Button variant="ghost" size="sm" className="text-caribbean-ocean hover:text-caribbean-ocean/80 text-xs sm:text-sm">
                   Media Kit
                 </Button>
               </a>
-              <a href="https://github.com/islandbitcoin/www/issues" target="_blank" rel="noopener noreferrer">
-                <Button variant="ghost" size="sm" className="text-caribbean-ocean hover:text-caribbean-ocean/80 text-xs sm:text-sm">
-                  Contact
-                </Button>
-              </a>
+              <ContactButton 
+                variant="ghost" 
+                size="sm" 
+                className="text-caribbean-ocean hover:text-caribbean-ocean/80 text-xs sm:text-sm" 
+              />
             </div>
           </div>
         </div>
