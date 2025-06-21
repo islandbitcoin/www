@@ -8,12 +8,14 @@ import { Loader2, Send, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
 import { sanitizeNostrContent } from '@/lib/sanitize';
 import { postRateLimiter } from '@/lib/rateLimit';
+import { useGameification } from '@/hooks/useGameification';
 
 export function NostrPostBox() {
   const [content, setContent] = useState('');
   const { user } = useCurrentUser();
   const { mutate: createEvent, isPending } = useNostrPublish();
   const { toast } = useToast();
+  const { recordActivity, checkAchievements } = useGameification();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,12 +49,16 @@ export function NostrPostBox() {
         tags: [['t', 'islandbitcoin']],
       },
       {
-        onSuccess: () => {
+        onSuccess: (event) => {
           setContent('');
           toast({
             title: 'Posted!',
             description: 'Your note has been published to Nostr.',
           });
+          
+          // Track activity and check achievements
+          recordActivity({ posts: 1, minutesActive: 1 });
+          checkAchievements('post', event);
         },
         onError: (error) => {
           toast({

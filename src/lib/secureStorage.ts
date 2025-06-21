@@ -89,6 +89,9 @@ export interface UserPreferences {
   favoriteUsers?: string[];
   language?: string;
   compactView?: boolean;
+  useTorRelays?: boolean;
+  privacyMode?: boolean;
+  ephemeralByDefault?: boolean;
 }
 
 export function getUserPreferences(): UserPreferences {
@@ -102,6 +105,8 @@ export function getUserPreferences(): UserPreferences {
     favoriteUsers: [],
     language: 'en',
     compactView: false,
+    useTorRelays: false,
+    privacyMode: false,
   }) || {
     theme: 'light',
     notificationsEnabled: true,
@@ -112,6 +117,8 @@ export function getUserPreferences(): UserPreferences {
     favoriteUsers: [],
     language: 'en',
     compactView: false,
+    useTorRelays: false,
+    privacyMode: false,
   };
 }
 

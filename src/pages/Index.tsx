@@ -1,7 +1,7 @@
 import { useSeoMeta } from '@unhead/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Image, Users, Zap, Menu } from 'lucide-react';
+import { Calendar, Image, Users, Zap, Menu, Settings as SettingsIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoginArea } from '@/components/auth/LoginArea';
@@ -14,6 +14,9 @@ import { BitcoinPrice } from '@/components/BitcoinPrice';
 import { MediaGallery } from '@/components/MediaGallery';
 import { NotificationBell } from '@/components/NotificationBell';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { StreakDisplay } from '@/components/StreakDisplay';
+import { DirectMessages } from '@/components/DirectMessages';
+import { BitcoinGames } from '@/components/BitcoinGames';
 
 const Index = () => {
   useSeoMeta({
@@ -37,7 +40,17 @@ const Index = () => {
               <Zap className="w-5 h-5 text-caribbean-mango" />
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
-              {user && <NotificationBell />}
+              {user && (
+                <>
+                  <DirectMessages />
+                  <NotificationBell />
+                  <Link to="/settings">
+                    <Button variant="ghost" size="icon" className="text-caribbean-ocean hover:text-caribbean-ocean/80">
+                      <SettingsIcon className="h-5 w-5" />
+                    </Button>
+                  </Link>
+                </>
+              )}
               <LoginArea className="max-w-40" />
               <Sheet open={isNostrFeedOpen} onOpenChange={setIsNostrFeedOpen}>
                 <SheetTrigger asChild>
@@ -55,6 +68,7 @@ const Index = () => {
                     </div>
                     <div className="p-4 space-y-4">
                       <NostrPostBox />
+                      {user && <StreakDisplay />}
                       {siteConfig.features.bitcoinPrice && <BitcoinPrice />}
                     </div>
                     <ScrollArea className="flex-1 px-4 pb-4">
@@ -271,6 +285,13 @@ const Index = () => {
               View Full Gallery
             </Button>
           </div>
+        </div>
+      </section>
+
+      {/* Bitcoin Games Section */}
+      <section className="py-12 sm:py-16">
+        <div className="container mx-auto px-4">
+          <BitcoinGames />
         </div>
       </section>
 
