@@ -9,13 +9,13 @@ export interface SiteConfig {
   tagline: string;
   description: string;
   url: string;
-  
+
   // Branding
   logo?: string;
   favicon?: string;
   themeColor: string;
   accentColor: string;
-  
+
   // Community Settings
   community: {
     location: string;
@@ -23,7 +23,7 @@ export interface SiteConfig {
     language: string;
     timezone: string;
   };
-  
+
   // Nostr Configuration
   nostr: {
     defaultRelays: string[];
@@ -31,7 +31,7 @@ export interface SiteConfig {
     communityTags: string[];
     clientTag: string;
   };
-  
+
   // Features
   features: {
     events: boolean;
@@ -41,11 +41,11 @@ export interface SiteConfig {
     achievements: boolean;
     zaps: boolean;
   };
-  
+
   // Social Links
   social?: {
     twitter?: string;
-    telegram?: string;
+    whatsapp?: string;
     github?: string;
     youtube?: string;
   };
@@ -53,32 +53,28 @@ export interface SiteConfig {
 
 // Default configuration for Island Bitcoin
 const defaultConfig: SiteConfig = {
-  name: 'Island Bitcoin',
-  tagline: 'Bitcoin in Paradise',
-  description: 'Join the vibrant Bitcoin community in the Caribbean. Events, education, and connection through Nostr.',
-  url: 'https://islandbitcoin.com',
-  
-  themeColor: '#FF6B35',
-  accentColor: '#00A5CF',
-  
+  name: "Island Bitcoin",
+  tagline: "Bitcoin in Paradise",
+  description: "Join the vibrant Bitcoin community in the Caribbean. Events, education, and connection through Nostr.",
+  url: "https://islandbitcoin.com",
+
+  themeColor: "#FF6B35",
+  accentColor: "#00A5CF",
+
   community: {
-    location: 'Caribbean',
-    currency: 'USD',
-    language: 'en',
-    timezone: 'America/Jamaica',
+    location: "Caribbean",
+    currency: "USD",
+    language: "en",
+    timezone: "America/Jamaica",
   },
-  
+
   nostr: {
-    defaultRelays: [
-      'wss://relay.nostr.band',
-      'wss://relay.damus.io',
-      'wss://relay.primal.net',
-    ],
-    communityDomains: ['islandbitcoin.com', 'getflash.io', 'flashapp.me'],
-    communityTags: ['islandbitcoin', 'caribbean', 'bitcoin'],
-    clientTag: 'island-bitcoin-web',
+    defaultRelays: ["wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"],
+    communityDomains: ["islandbitcoin.com", "getflash.io", "flashapp.me", "bitcoinindonesia.xyz", "bitcoindominica.com", "yesbitcoinhaiti.com"],
+    communityTags: ["islandbitcoin", "caribbean", "bitcoin"],
+    clientTag: "island-bitcoin-web",
   },
-  
+
   features: {
     events: true,
     mediaGallery: true,
@@ -87,10 +83,10 @@ const defaultConfig: SiteConfig = {
     achievements: true,
     zaps: true,
   },
-  
+
   social: {
-    twitter: 'https://twitter.com/islandbitcoin',
-    telegram: 'https://t.me/islandbitcoin',
+    twitter: "https://x.com/Island_Btc",
+    whatsapp: "https://chat.whatsapp.com/HdswRhtmRiHBkPo9euXCGL",
   },
 };
 
@@ -117,8 +113,8 @@ export const siteConfig: SiteConfig = {
   },
   nostr: {
     ...defaultConfig.nostr,
-    communityDomains: import.meta.env.VITE_NOSTR_DOMAINS?.split(',') || defaultConfig.nostr.communityDomains,
-    communityTags: import.meta.env.VITE_NOSTR_TAGS?.split(',') || defaultConfig.nostr.communityTags,
+    communityDomains: import.meta.env.VITE_NOSTR_DOMAINS?.split(",") || defaultConfig.nostr.communityDomains,
+    communityTags: import.meta.env.VITE_NOSTR_TAGS?.split(",") || defaultConfig.nostr.communityTags,
   },
 };
 
