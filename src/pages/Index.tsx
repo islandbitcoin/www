@@ -172,7 +172,7 @@ const Index = () => {
 
           <div className="text-center mt-8">
             <a
-              href={`https://github.com/islandbitcoin/www/issues/new?title=Event%20Submission:%20[Your%20Event%20Name]&body=${encodeURIComponent(`## Event Submission Template
+              href={`https://github.com/islandbitcoin/islandbitcoin-community/issues/new?title=Event%20Submission:%20[Your%20Event%20Name]&body=${encodeURIComponent(`## Event Submission Template
 
 **Event Name:** Satoshi Saturdays
 
