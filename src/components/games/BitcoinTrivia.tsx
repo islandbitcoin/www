@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Zap, RefreshCw, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Brain, Zap, RefreshCw, CheckCircle, XCircle, AlertCircle, Menu } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
 import { useGameification } from '@/hooks/useGameification';
 import { useGameWallet } from '@/hooks/useGameWallet';
@@ -12,10 +12,22 @@ import { useReferral } from '@/hooks/useReferral';
 import { secureStorage } from '@/lib/secureStorage';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { TRIVIA_QUESTIONS, TriviaQuestion, TriviaProgress } from '@/data/triviaQuestions';
+import { TriviaProgress } from '@/data/triviaQuestions';
+import { useTriviaMetadata, useDynamicLevelQuestions } from '@/hooks/useTriviaQuestions';
+import { TriviaQuestion, convertGitHubToUnified } from '@/types/trivia';
+import { Skeleton } from '@/components/ui/skeleton';
+import { LevelSelector } from './LevelSelector';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 
 export const BitcoinTrivia = memo(function BitcoinTrivia() {
+  const [showLevelSelector, setShowLevelSelector] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState<TriviaQuestion | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -37,23 +49,28 @@ export const BitcoinTrivia = memo(function BitcoinTrivia() {
   const { config, canUserEarnMore, userBalance } = useGameWallet();
   const { awardSats } = useAnonymousPlay();
   const { checkReferralCompletion } = useReferral();
+  
+  // Fetch trivia metadata to get available levels
+  const { data: metadata, isLoading: isMetadataLoading } = useTriviaMetadata();
+  
+  // Dynamic level questions - fetch 12 questions per level
+  const questionsQuery = useDynamicLevelQuestions(
+    progress.currentLevel,
+    12, // Questions per level
+    progress.answeredQuestions
+  );
+  
+  const levelQuestions = questionsQuery.data || [];
+  const isQuestionsLoading = questionsQuery.isLoading;
+  const questionsError = questionsQuery.error;
+  const refetchQuestions = questionsQuery.refetch;
 
-  // Get level questions
-  const getLevelQuestions = (level: number) => {
-    if (level === 1) {
-      // Level 1: First 12 questions (easy to medium)
-      return TRIVIA_QUESTIONS.slice(0, 12);
-    } else if (level === 2) {
-      // Level 2: Hard questions (btc-13 through btc-24)
-      return TRIVIA_QUESTIONS.slice(12, 24);
-    }
-    return [];
-  };
+  // Convert GitHub questions to unified format
+  const unifiedQuestions = levelQuestions.map(convertGitHubToUnified);
   
   // Get a random question that hasn't been answered yet in current level
   const getNextQuestion = () => {
-    const levelQuestions = getLevelQuestions(progress.currentLevel);
-    const unansweredQuestions = levelQuestions.filter(
+    const unansweredQuestions = unifiedQuestions.filter(
       q => !progress.answeredQuestions.includes(q.id)
     );
     
@@ -66,11 +83,10 @@ export const BitcoinTrivia = memo(function BitcoinTrivia() {
   };
 
   useEffect(() => {
-    if (!currentQuestion && !progress.levelCompleted) {
+    if (!currentQuestion && !progress.levelCompleted && unifiedQuestions.length > 0) {
       setCurrentQuestion(getNextQuestion());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progress.levelCompleted]);
+  }, [progress.levelCompleted, unifiedQuestions.length]);
 
   const handleAnswer = async (answerIndex: number) => {
     if (showResult) return;
@@ -101,12 +117,11 @@ export const BitcoinTrivia = memo(function BitcoinTrivia() {
     };
     
     // Check if level is completed
-    const levelQuestions = getLevelQuestions(progress.currentLevel);
     const levelAnsweredCount = newProgress.answeredQuestions.filter(
-      id => levelQuestions.some(q => q.id === id)
+      id => unifiedQuestions.some(q => q.id === id)
     ).length;
     
-    if (levelAnsweredCount >= 12) {
+    if (levelAnsweredCount >= unifiedQuestions.length && unifiedQuestions.length > 0) {
       newProgress.levelCompleted = true;
     }
     
@@ -155,6 +170,10 @@ export const BitcoinTrivia = memo(function BitcoinTrivia() {
   
   const startNextLevel = () => {
     const newLevel = progress.currentLevel + 1;
+    changeLevel(newLevel);
+  };
+  
+  const changeLevel = (newLevel: number) => {
     const newProgress = {
       ...progress,
       currentLevel: newLevel,
@@ -164,12 +183,11 @@ export const BitcoinTrivia = memo(function BitcoinTrivia() {
     setProgress(newProgress);
     secureStorage.set('bitcoinTriviaProgress', newProgress);
     
-    const nextQ = getNextQuestion();
-    if (nextQ) {
-      setCurrentQuestion(nextQ);
-      setSelectedAnswer(null);
-      setShowResult(false);
-    }
+    // Reset question state
+    setCurrentQuestion(null);
+    setSelectedAnswer(null);
+    setShowResult(false);
+    setShowLevelSelector(false);
   };
 
   const accuracy = progress.totalQuestionsAnswered > 0 ?
@@ -182,7 +200,7 @@ export const BitcoinTrivia = memo(function BitcoinTrivia() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Brain className="h-5 w-5 text-caribbean-ocean" />
-              Bitcoin Trivia
+              Bitcoin Trivia - Level {progress.currentLevel}
             </CardTitle>
             <CardDescription>
               Test your knowledge and earn sats!
@@ -232,8 +250,40 @@ export const BitcoinTrivia = memo(function BitcoinTrivia() {
           </div>
         </div>
 
-        {/* Question or Level Complete */}
-        {currentQuestion ? (
+        {/* Loading State */}
+        {(isMetadataLoading || isQuestionsLoading) ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+            <Skeleton className="h-8 w-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          </div>
+        ) : questionsError ? (
+          // Error state
+          <div className="space-y-3">
+            <Alert className="border-red-200 bg-red-50">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription>
+                Failed to load questions. Using offline mode.
+              </AlertDescription>
+            </Alert>
+            <Button 
+              onClick={() => refetchQuestions()} 
+              variant="outline"
+              className="w-full"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Try Again
+            </Button>
+          </div>
+        ) : currentQuestion ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Badge variant={currentQuestion.difficulty === 'easy' ? 'secondary' : 
@@ -292,7 +342,7 @@ export const BitcoinTrivia = memo(function BitcoinTrivia() {
                 You've mastered this level. Ready for harder questions?
               </p>
             </div>
-            {progress.currentLevel < 2 ? (
+            {metadata && progress.currentLevel < Math.max(...metadata.levels) ? (
               <Button 
                 onClick={startNextLevel} 
                 className="w-full bg-caribbean-mango hover:bg-caribbean-mango/90"
@@ -330,18 +380,44 @@ export const BitcoinTrivia = memo(function BitcoinTrivia() {
             <span>Level {progress.currentLevel} Progress</span>
             <span>
               {progress.answeredQuestions.filter(id => 
-                getLevelQuestions(progress.currentLevel).some(q => q.id === id)
-              ).length} / 12
+                unifiedQuestions.some(q => q.id === id)
+              ).length} / {unifiedQuestions.length || 12}
             </span>
           </div>
           <Progress 
             value={(progress.answeredQuestions.filter(id => 
-              getLevelQuestions(progress.currentLevel).some(q => q.id === id)
-            ).length / 12) * 100} 
+              unifiedQuestions.some(q => q.id === id)
+            ).length / Math.max(unifiedQuestions.length, 1)) * 100} 
             className="h-2"
           />
         </div>
+        
+        {/* Level Selector Button */}
+        <Button
+          variant="outline"
+          onClick={() => setShowLevelSelector(true)}
+          className="w-full"
+        >
+          <Menu className="mr-2 h-4 w-4" />
+          Choose Different Level
+        </Button>
       </CardContent>
+      
+      {/* Level Selector Dialog */}
+      <Dialog open={showLevelSelector} onOpenChange={setShowLevelSelector}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Choose Your Level</DialogTitle>
+            <DialogDescription>
+              Select a level to play. Complete levels to unlock new challenges!
+            </DialogDescription>
+          </DialogHeader>
+          <LevelSelector
+            progress={progress}
+            onSelectLevel={changeLevel}
+          />
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 });
