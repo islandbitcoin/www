@@ -1,7 +1,7 @@
 import { useSeoMeta } from "@unhead/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Image, Users, Zap, Menu, Settings as SettingsIcon } from "lucide-react";
+import { Calendar, Image, Menu, Settings as SettingsIcon } from "lucide-react";
 import { useState } from "react";
 import { LoginArea } from "@/components/auth/LoginArea";
 import { Link } from "react-router-dom";
@@ -14,6 +14,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { BitcoinGames } from "@/components/lazy";
 import { LazyWrapper, loadingSkeletons } from "@/components/LazyWrapper";
 import { GameErrorBoundary } from "@/components/ErrorBoundary";
+import { UpcomingEvents } from "@/components/events";
 
 const Index = () => {
   useSeoMeta({
@@ -109,50 +110,9 @@ const Index = () => {
             <p className="text-base sm:text-lg text-gray-600 px-4 sm:px-0">Bitcoin meetups, workshops, and celebrations across the islands</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto">
-            {/* Event Cards */}
-            <Card className="hover:shadow-lg transition-shadow border-caribbean-sand hover:border-caribbean-ocean/30">
-              <CardHeader>
-                <CardTitle className="text-caribbean-ocean">Kingston Bitcoin Meetup</CardTitle>
-                <CardDescription>Kingston, Jamaica • Every Last Thursday</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">Learn about bitcoin while enjoying Jamaican food and an open bar. Perfect for beginners!</p>
-                <div className="mt-4 flex items-center gap-2 text-sm text-caribbean-palm">
-                  <Users className="h-4 w-4" />
-                  <span>Social Meetup</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow border-caribbean-sand hover:border-caribbean-ocean/30">
-              <CardHeader>
-                <CardTitle className="text-caribbean-ocean">Bitcoin Pizza Day</CardTitle>
-                <CardDescription>Kingston, Jamaica • May 22nd, 2026</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600"> Celebrate Bitcoin Pizza Day with us! Enjoy free pizza, drinks, and a chance to win prizes.</p>
-                <div className="mt-4 flex items-center gap-2 text-sm text-caribbean-palm">
-                  <Zap className="h-4 w-4" />
-                  <span>Special Event</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow border-caribbean-sand hover:border-caribbean-ocean/30">
-              <CardHeader>
-                <CardTitle className="text-caribbean-ocean">Trezor Academy Workshop</CardTitle>
-                <CardDescription>Ocho Rios, Jamaica • TBD</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">Learn how to secure your Bitcoin with Trezor hardware wallets. Hands-on workshop for all levels.</p>
-                <div className="mt-4 flex items-center gap-2 text-sm text-caribbean-palm">
-                  <Calendar className="h-4 w-4" />
-                  <span>Workshop</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <LazyWrapper fallback={loadingSkeletons.default}>
+            <UpcomingEvents className="max-w-6xl mx-auto" />
+          </LazyWrapper>
 
           <div className="text-center mt-8">
             <a

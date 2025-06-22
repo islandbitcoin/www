@@ -1,11 +1,11 @@
 {
   "_comment": "Kingston Bitcoin Meetup - Recurring Monthly Event",
   "_version": "1.0.0",
-  
+
   "event": {
     "id": "kingston-bitcoin-meetup-2024",
     "status": "published",
-    
+
     "basic_info": {
       "title": "Kingston Bitcoin Meetup",
       "subtitle": "Learn, Network, Orange Pill",
@@ -22,51 +22,45 @@
         "other_accommodations": ["Beginner-friendly presentations", "One-on-one wallet setup help"]
       }
     },
-    
+
     "datetime": {
-      "start": "2024-04-25T18:00:00-05:00",
-      "end": "2024-04-25T21:00:00-05:00",
+      "start": "2025-06-26T19:00:00-05:00",
+      "end": "2025-06-26T22:00:00-05:00",
       "timezone": "America/Jamaica",
       "recurring": {
         "enabled": true,
         "frequency": "monthly",
-        "end_date": "2024-12-31",
+        "end_date": "2027-12-31",
         "exceptions": []
       },
-      "doors_open": "2024-04-25T17:30:00-05:00",
+      "doors_open": "2025-06-26T17:30:00-01:00",
       "schedule": [
         {
-          "time": "18:00",
+          "time": "19:00",
           "duration": "30min",
           "title": "Networking & Food",
           "description": "Arrive, get food and drinks, meet fellow Bitcoiners"
         },
         {
-          "time": "18:30",
-          "duration": "30min",
-          "title": "Bitcoin Basics Presentation",
-          "description": "Introduction to Bitcoin for newcomers"
-        },
-        {
-          "time": "19:00",
-          "duration": "30min",
-          "title": "Lightning Demos & Wallet Setup",
-          "description": "Hands-on Lightning Network experience"
-        },
-        {
           "time": "19:30",
-          "duration": "90min",
-          "title": "Open Discussion & Networking",
-          "description": "Q&A, discussions, and community building"
+          "duration": "30min",
+          "title": "Bitcoin Games",
+          "description": "Introduction to Bitcoin games for newcomers"
+        },
+        {
+          "time": "20:00",
+          "duration": "30min",
+          "title": "Music & Dancing",
+          "description": "Enjoy local music and dance while discussing Bitcoin"
         }
       ]
     },
-    
+
     "location": {
       "type": "physical",
-      "name": "The Bitcoin Spot Kingston",
+      "name": "Summit Kingston",
       "address": {
-        "street": "123 Hope Road",
+        "street": "16 Chelsea Avenue",
         "city": "Kingston",
         "state_province": "St. Andrew",
         "postal_code": "JMAAW01",
@@ -76,11 +70,11 @@
           "longitude": -76.7664
         }
       },
-      "directions": "Located in New Kingston, near Devon House. Look for the Bitcoin flag outside.",
-      "parking": "Free parking available in the lot behind the building",
-      "public_transit": "JUTC buses 21, 22, and 100 stop at Half Way Tree, 5-minute walk"
+      "directions": "Located in on Chelsea Avenue, near Half Way Tree Road. Look out for the Island Bitcoin banner.",
+      "parking": "Free parking available on Ruthven Road.",
+      "public_transit": "5-minute ride from the AC Hotel via taxi to the venue."
     },
-    
+
     "registration": {
       "required": false,
       "url": "https://www.meetup.com/kingston-bitcoin",
@@ -104,7 +98,7 @@
         "preparation": "No preparation needed - come as you are!"
       }
     },
-    
+
     "organizer": {
       "name": "Kingston Bitcoin Community",
       "email": "kingston@islandbitcoin.com",
@@ -119,7 +113,7 @@
         "telegram": "https://t.me/kingstonbitcoin"
       }
     },
-    
+
     "speakers": [
       {
         "name": "Various Community Members",
@@ -128,7 +122,7 @@
         "topics": ["Bitcoin basics", "Lightning Network", "Self-custody", "Local adoption"]
       }
     ],
-    
+
     "sponsors": [
       {
         "name": "Local Bitcoin Business",
@@ -136,17 +130,13 @@
         "description": "Supporting Bitcoin adoption in Jamaica"
       }
     ],
-    
+
     "media": {
       "featured_image": "kingston-meetup-banner.jpg",
       "thumbnail": "kingston-meetup-thumb.jpg",
-      "gallery": [
-        "meetup-venue.jpg",
-        "community-photo.jpg",
-        "lightning-demo.jpg"
-      ]
+      "gallery": ["meetup-venue.jpg", "community-photo.jpg", "lightning-demo.jpg"]
     },
-    
+
     "catering": {
       "provided": true,
       "type": "meal",
@@ -158,36 +148,31 @@
         }
       ]
     },
-    
+
     "extras": {
       "giveaways": ["Bitcoin stickers", "Educational materials"],
       "activities": ["Wallet setup assistance", "Lightning payment demos"],
       "networking_session": true
     },
-    
+
     "target_audience": {
       "experience_level": ["beginner", "intermediate", "advanced"],
       "interests": ["general", "merchants", "developers"],
       "age_groups": ["18-25", "26-35", "36-50", "50+"]
     },
-    
+
     "promotion": {
       "hashtags": ["#BitcoinJamaica", "#KingstonBitcoin", "#IslandBitcoin"],
       "marketing_materials": {
         "flyer": "kingston-meetup-flyer.pdf"
       }
     },
-    
+
     "metrics": {
       "expected_attendance": 50,
-      "success_metrics": [
-        "New wallets created",
-        "First-time attendees",
-        "Return attendees",
-        "Lightning transactions completed"
-      ]
+      "success_metrics": ["New wallets created", "First-time attendees", "Return attendees", "Lightning transactions completed"]
     },
-    
+
     "metadata": {
       "created_at": "2024-01-15T12:00:00Z",
       "updated_at": "2024-03-15T14:30:00Z",

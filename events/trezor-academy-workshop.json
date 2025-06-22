@@ -1,11 +1,11 @@
 {
   "_comment": "Trezor Academy Workshop - Hardware Wallet Security Training",
   "_version": "1.0.0",
-  
+
   "event": {
-    "id": "trezor-academy-ocho-rios-2024",
+    "id": "trezor-academy-ocho-rios-2025",
     "status": "draft",
-    
+
     "basic_info": {
       "title": "Trezor Academy Workshop",
       "subtitle": "Master Bitcoin Security with Hardware Wallets",
@@ -22,10 +22,10 @@
         "other_accommodations": ["One-on-one assistance available", "Materials in large print on request"]
       }
     },
-    
+
     "datetime": {
-      "start": "TBD",
-      "end": "TBD",
+      "start": "2025-08-15T14:00:00-05:00",
+      "end": "2025-08-15T17:00:00-05:00",
       "timezone": "America/Jamaica",
       "recurring": {
         "enabled": false
@@ -93,10 +93,10 @@
         }
       ]
     },
-    
+
     "location": {
       "type": "physical",
-      "name": "Ocho Rios Tech Hub",
+      "name": "Ocho Rios TBD Venue",
       "address": {
         "street": "TBD",
         "city": "Ocho Rios",
@@ -111,7 +111,7 @@
       "parking": "Free parking available",
       "public_transit": "Details TBD"
     },
-    
+
     "registration": {
       "required": true,
       "url": "https://trezor.islandbitcoin.com",
@@ -137,16 +137,11 @@
       "requirements": {
         "age_minimum": 16,
         "prerequisites": ["Basic Bitcoin knowledge helpful but not required"],
-        "bring_items": [
-          "Laptop (recommended)",
-          "Smartphone",
-          "Notebook and pen",
-          "Your own Trezor (if you have one)"
-        ],
+        "bring_items": ["Laptop (recommended)", "Smartphone", "Notebook and pen", "Your own Trezor (if you have one)"],
         "preparation": "Download Trezor Suite software before attending: https://trezor.io/suite"
       }
     },
-    
+
     "organizer": {
       "name": "Island Bitcoin Education",
       "email": "education@islandbitcoin.com",
@@ -157,7 +152,7 @@
         "nip05": "education@islandbitcoin.com"
       }
     },
-    
+
     "speakers": [
       {
         "name": "Certified Trezor Educator",
@@ -167,7 +162,7 @@
         "topics": ["Hardware wallet security", "Bitcoin self-custody", "Best practices"]
       }
     ],
-    
+
     "sponsors": [
       {
         "name": "Trezor",
@@ -183,17 +178,13 @@
         "description": "Your Caribbean Bitcoin community"
       }
     ],
-    
+
     "media": {
       "featured_image": "trezor-workshop-banner.jpg",
       "thumbnail": "trezor-workshop-thumb.jpg",
-      "gallery": [
-        "workshop-setup.jpg",
-        "hands-on-practice.jpg",
-        "trezor-devices.jpg"
-      ]
+      "gallery": ["workshop-setup.jpg", "hands-on-practice.jpg", "trezor-devices.jpg"]
     },
-    
+
     "agenda": {
       "topics": [
         "Hardware wallet fundamentals",
@@ -206,14 +197,10 @@
       ],
       "format": "workshop",
       "materials": {
-        "handouts": [
-          "trezor-setup-guide.pdf",
-          "security-checklist.pdf",
-          "recovery-worksheet.pdf"
-        ]
+        "handouts": ["trezor-setup-guide.pdf", "security-checklist.pdf", "recovery-worksheet.pdf"]
       }
     },
-    
+
     "catering": {
       "provided": true,
       "type": "meal",
@@ -225,33 +212,25 @@
         }
       ]
     },
-    
+
     "extras": {
-      "giveaways": [
-        "Security steel backup plates",
-        "Trezor stickers",
-        "Security guide booklet"
-      ],
-      "activities": [
-        "Hands-on device setup",
-        "Recovery simulation",
-        "Security quiz"
-      ]
+      "giveaways": ["Security steel backup plates", "Trezor stickers", "Security guide booklet"],
+      "activities": ["Hands-on device setup", "Recovery simulation", "Security quiz"]
     },
-    
+
     "target_audience": {
       "experience_level": ["beginner", "intermediate"],
       "interests": ["investors", "general", "security-focused"],
       "age_groups": ["18-25", "26-35", "36-50", "50+"]
     },
-    
+
     "promotion": {
       "hashtags": ["#TrezorAcademy", "#BitcoinSecurity", "#IslandBitcoin", "#SelfCustody"],
       "marketing_materials": {
         "flyer": "trezor-workshop-flyer.pdf"
       }
     },
-    
+
     "metrics": {
       "expected_attendance": 20,
       "success_metrics": [
@@ -264,12 +243,12 @@
         "survey_url": "https://forms.islandbitcoin.com/trezor-feedback"
       }
     },
-    
+
     "legal": {
       "photo_video_consent": true,
       "liability_waiver": true
     },
-    
+
     "metadata": {
       "created_at": "2024-03-01T12:00:00Z",
       "updated_at": "2024-03-15T14:30:00Z",
