@@ -1,6 +1,6 @@
 # Island Bitcoin ⚡️ 🏝️
 
-A Bitcoin Lightning gaming platform built for the Caribbean Bitcoin community. Earn sats by playing Bitcoin-themed games, participating in tournaments, and engaging with the community.
+A Bitcoin Lightning Community, Events and gaming platform built for the Caribbean Bitcoin community. Earn sats by playing Bitcoin-themed games, participating in tournaments, and engaging with the community.
 
 ## 🎮 Features
 
