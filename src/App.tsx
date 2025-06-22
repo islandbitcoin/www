@@ -15,6 +15,7 @@ import { AppConfig } from '@/contexts/AppContext';
 import AppRouter from './AppRouter';
 import { CaribbeanProfileProvider } from '@/components/CaribbeanProfileProvider';
 import { ServiceWorkerProvider } from '@/components/ServiceWorkerProvider';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const head = createHead({
   plugins: [
@@ -46,27 +47,34 @@ const presetRelays = [
 
 export function App() {
   return (
-    <UnheadProvider head={head}>
-      <AppProvider storageKey="nostr:app-config" defaultConfig={defaultConfig} presetRelays={presetRelays}>
-        <QueryClientProvider client={queryClient}>
-          <NostrLoginProvider storageKey='nostr:login'>
-            <NostrProvider>
-              <TooltipProvider>
-                <ServiceWorkerProvider>
-                  <CaribbeanProfileProvider>
-                    <Toaster />
-                    <Sonner />
-                    <Suspense>
-                      <AppRouter />
-                    </Suspense>
-                  </CaribbeanProfileProvider>
-                </ServiceWorkerProvider>
-              </TooltipProvider>
-            </NostrProvider>
-          </NostrLoginProvider>
-        </QueryClientProvider>
-      </AppProvider>
-    </UnheadProvider>
+    <ErrorBoundary
+      onError={(error, errorInfo) => {
+        console.error('Root application error:', error, errorInfo);
+        // In production, you might want to send this to an error tracking service
+      }}
+    >
+      <UnheadProvider head={head}>
+        <AppProvider storageKey="nostr:app-config" defaultConfig={defaultConfig} presetRelays={presetRelays}>
+          <QueryClientProvider client={queryClient}>
+            <NostrLoginProvider storageKey='nostr:login'>
+              <NostrProvider>
+                <TooltipProvider>
+                  <ServiceWorkerProvider>
+                    <CaribbeanProfileProvider>
+                      <Toaster />
+                      <Sonner />
+                      <Suspense>
+                        <AppRouter />
+                      </Suspense>
+                    </CaribbeanProfileProvider>
+                  </ServiceWorkerProvider>
+                </TooltipProvider>
+              </NostrProvider>
+            </NostrLoginProvider>
+          </QueryClientProvider>
+        </AppProvider>
+      </UnheadProvider>
+    </ErrorBoundary>
   );
 }
 

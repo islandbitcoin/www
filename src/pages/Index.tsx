@@ -6,17 +6,15 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LoginArea } from "@/components/auth/LoginArea";
 import { Link } from "react-router-dom";
-import { NostrFeed } from "@/components/NostrFeed";
-import { NostrPostBox } from "@/components/NostrPostBox";
+import { NostrFeed, NostrPostBox, NotificationBell, DirectMessages, ContactButton } from "@/components/social";
 import { siteConfig } from "@/config/site.config";
-import { BitcoinPrice } from "@/components/BitcoinPrice";
-import { MediaGallery } from "@/components/MediaGallery";
-import { NotificationBell } from "@/components/NotificationBell";
+import { BitcoinPrice } from "@/components/financial";
+import { MediaGallery } from "@/components/lazy";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { StreakDisplay } from "@/components/StreakDisplay";
-import { DirectMessages } from "@/components/DirectMessages";
-import { BitcoinGames } from "@/components/BitcoinGames";
-import { ContactButton } from "@/components/ContactButton";
+import { StreakDisplay } from "@/components/games";
+import { BitcoinGames } from "@/components/lazy";
+import { LazyWrapper, loadingSkeletons } from "@/components/LazyWrapper";
+import { SocialErrorBoundary, GameErrorBoundary } from "@/components/ErrorBoundary";
 
 const Index = () => {
   useSeoMeta({
@@ -69,8 +67,10 @@ const Index = () => {
                       </div>
                     </div>
                     <div className="p-4 space-y-4">
-                      <NostrPostBox />
-                      <NostrFeed limit={10} />
+                      <SocialErrorBoundary>
+                        <NostrPostBox />
+                        <NostrFeed limit={10} />
+                      </SocialErrorBoundary>
                     </div>
                   </div>
                 </SheetContent>
@@ -238,7 +238,8 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
             <p className="text-base sm:text-lg text-gray-600 px-4 sm:px-0">Capturing the spirit of Bitcoin adoption across the Caribbean</p>
           </div>
 
-          <MediaGallery
+          <LazyWrapper fallback={loadingSkeletons.default}>
+            <MediaGallery
             items={[
               {
                 id: "1",
@@ -315,6 +316,7 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
             ]}
             className="max-w-6xl mx-auto"
           />
+          </LazyWrapper>
 
           <div className="text-center mt-8">
             <a
@@ -366,7 +368,11 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
       {/* Bitcoin Games Section */}
       <section className="py-12 sm:py-16">
         <div className="container mx-auto px-4">
-          <BitcoinGames />
+          <GameErrorBoundary>
+            <LazyWrapper fallback={loadingSkeletons.game}>
+              <BitcoinGames />
+            </LazyWrapper>
+          </GameErrorBoundary>
         </div>
       </section>
 

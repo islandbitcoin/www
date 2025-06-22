@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { OptimizedImage } from '@/components/OptimizedImage';
+import { useState, memo } from 'react';
+import { OptimizedImage } from '@/components/common/OptimizedImage';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -22,7 +22,7 @@ interface MediaGalleryProps {
   className?: string;
 }
 
-export function MediaGallery({ items, className }: MediaGalleryProps) {
+export const MediaGallery = memo(function MediaGallery({ items, className }: MediaGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
@@ -211,4 +211,4 @@ export function MediaGallery({ items, className }: MediaGalleryProps) {
 
     </>
   );
-}
+});

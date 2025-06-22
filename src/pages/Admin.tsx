@@ -27,6 +27,7 @@ import { GamePayout, gameWalletManager } from '@/lib/gameWallet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useToast } from '@/hooks/useToast';
+import { AdminErrorBoundary } from '@/components/ErrorBoundary';
 
 // Payouts table component
 function PayoutsTable() {
@@ -175,25 +176,12 @@ function PayoutRow({ payout }: { payout: GamePayout }) {
       </TableCell>
       <TableCell>
         {(() => {
-          const lightningAddress = payout.gameType === 'withdrawal' && 
-            payout.gameData && 
-            'lightningAddress' in payout.gameData ? 
-            payout.gameData.lightningAddress : null;
-          
           const canReset = payout.gameType === 'withdrawal' && 
             (payout.status === 'paid' || payout.status === 'pending') &&
-            payout.paymentProof?.startsWith('pullpayment_');
+            payout.pullPaymentId?.startsWith('pullpayment_');
           
           return (
             <>
-              {lightningAddress && (
-                <div className="text-xs text-muted-foreground mb-1">
-                  To: {String(lightningAddress)}
-                </div>
-              )}
-              {payout.error && (
-                <span className="text-xs text-red-600">{payout.error}</span>
-              )}
               {canReset && (
                 <Button
                   variant="outline"
@@ -208,29 +196,19 @@ function PayoutRow({ payout }: { payout: GamePayout }) {
                   Reset Withdrawal
                 </Button>
               )}
-              {payout.gameData && payout.gameType !== 'withdrawal' && (
-                <details className="text-xs">
-                  <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                    View details
-                  </summary>
-                  <pre className="mt-1 p-2 bg-gray-50 rounded text-xs overflow-auto max-w-xs">
-                    {JSON.stringify(payout.gameData, null, 2)}
-                  </pre>
-                </details>
-              )}
-              {payout.paymentProof && (
+              {payout.pullPaymentId && (
                 <div className="text-xs text-muted-foreground mt-1">
-                  {payout.paymentProof.startsWith('internal_') ? (
+                  {payout.pullPaymentId.startsWith('internal_') ? (
                     <span>Internal transfer</span>
-                  ) : payout.paymentProof.startsWith('pullpayment_') ? (
+                  ) : payout.pullPaymentId.startsWith('pullpayment_') ? (
                     <span>Pull payment generated</span>
                   ) : (
                     <details>
                       <summary className="cursor-pointer hover:text-foreground">
-                        Payment proof
+                        Payment ID
                       </summary>
                       <code className="block mt-1 p-2 bg-gray-50 rounded text-xs break-all">
-                        {payout.paymentProof}
+                        {payout.pullPaymentId}
                       </code>
                     </details>
                   )}
@@ -286,14 +264,9 @@ function PayoutCard({ payout }: { payout: GamePayout }) {
     }).format(date);
   };
   
-  const lightningAddress = payout.gameType === 'withdrawal' && 
-    payout.gameData && 
-    'lightningAddress' in payout.gameData ? 
-    String(payout.gameData.lightningAddress) : null;
-
   const canReset = payout.gameType === 'withdrawal' && 
     (payout.status === 'paid' || payout.status === 'pending') &&
-    payout.paymentProof?.startsWith('pullpayment_');
+    payout.pullPaymentId?.startsWith('pullpayment_');
 
   return (
     <Card className="p-4">
@@ -329,17 +302,6 @@ function PayoutCard({ payout }: { payout: GamePayout }) {
           )}
         </div>
         
-        {lightningAddress && (
-          <div className="text-xs text-muted-foreground">
-            To: {lightningAddress}
-          </div>
-        )}
-        
-        {payout.error && (
-          <div className="text-xs text-red-600">
-            Error: {payout.error}
-          </div>
-        )}
         
         {canReset && (
           <Button
@@ -356,14 +318,14 @@ function PayoutCard({ payout }: { payout: GamePayout }) {
           </Button>
         )}
         
-        {payout.paymentProof && (
+        {payout.pullPaymentId && (
           <div className="text-xs text-muted-foreground">
-            {payout.paymentProof.startsWith('internal_') ? (
+            {payout.pullPaymentId.startsWith('internal_') ? (
               <span>Internal transfer</span>
-            ) : payout.paymentProof.startsWith('pullpayment_') ? (
+            ) : payout.pullPaymentId.startsWith('pullpayment_') ? (
               <span>Pull payment generated</span>
             ) : (
-              <span className="font-mono">Proof: {payout.paymentProof.slice(0, 16)}...</span>
+              <span className="font-mono">ID: {payout.pullPaymentId.slice(0, 16)}...</span>
             )}
           </div>
         )}
@@ -432,14 +394,15 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-caribbean-sand via-white to-caribbean-sand/30 py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Game Wallet Admin</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage game rewards and wallet configuration
-          </p>
-        </div>
+    <AdminErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-b from-caribbean-sand via-white to-caribbean-sand/30 py-8">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Game Wallet Admin</h1>
+            <p className="text-muted-foreground mt-2">
+              Manage game rewards and wallet configuration
+            </p>
+          </div>
 
         {/* Statistics Card */}
         <Card className="mb-6 border-caribbean-ocean/20">
@@ -760,7 +723,7 @@ export default function Admin() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        gameWalletManager.cleanupSimulatedPayouts();
+                        gameWalletManager.cleanupOldPayouts();
                         window.location.reload();
                       }}
                     >
@@ -1030,7 +993,8 @@ export default function Admin() {
             </Card>
           </TabsContent>
         </Tabs>
+        </div>
       </div>
-    </div>
+    </AdminErrorBoundary>
   );
 }

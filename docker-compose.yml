@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Frontend web application
+  frontend:
+    build: .
+    container_name: islandbitcoin-frontend
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - islandbitcoin-network
+    depends_on:
+      - sync-server
+
+  # Configuration sync server
+  sync-server:
+    build: ./server
+    container_name: islandbitcoin-sync
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - API_SECRET=${API_SECRET:-change-this-secret-in-production}
+      - REDIS_URL=redis://redis:6379
+      - CACHE_TTL=300
+    restart: unless-stopped
+    networks:
+      - islandbitcoin-network
+    volumes:
+      - sync-data:/app/data
+    depends_on:
+      - redis
+
+  # Redis cache (optional, for future use)
+  redis:
+    image: redis:alpine
+    container_name: islandbitcoin-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - islandbitcoin-network
+    volumes:
+      - redis-data:/data
+
+networks:
+  islandbitcoin-network:
+    driver: bridge
+
+volumes:
+  sync-data:
+  redis-data:

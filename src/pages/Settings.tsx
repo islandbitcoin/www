@@ -1,11 +1,11 @@
 import { useSeoMeta } from '@unhead/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, User, Palette, Bell, Zap, ArrowLeft } from 'lucide-react';
+import { Shield, User, Palette, Bell, Zap, ArrowLeft, Users } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
-import { PrivacySettings } from '@/components/PrivacySettings';
-import { EditProfileForm } from '@/components/EditProfileForm';
+import { PrivacySettings, EditProfileForm, ReferralPanel } from '@/components/lazy';
+import { LazyWrapper, loadingSkeletons } from '@/components/LazyWrapper';
 import { siteConfig } from '@/config/site.config';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -75,10 +75,14 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Profile</span>
+            </TabsTrigger>
+            <TabsTrigger value="referral" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Referral</span>
             </TabsTrigger>
             <TabsTrigger value="privacy" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
@@ -91,11 +95,21 @@ export default function Settings() {
           </TabsList>
 
           <TabsContent value="profile">
-            <EditProfileForm />
+            <LazyWrapper fallback={loadingSkeletons.form}>
+              <EditProfileForm />
+            </LazyWrapper>
+          </TabsContent>
+
+          <TabsContent value="referral">
+            <LazyWrapper fallback={loadingSkeletons.default}>
+              <ReferralPanel />
+            </LazyWrapper>
           </TabsContent>
 
           <TabsContent value="privacy">
-            <PrivacySettings />
+            <LazyWrapper fallback={loadingSkeletons.form}>
+              <PrivacySettings />
+            </LazyWrapper>
           </TabsContent>
 
           <TabsContent value="preferences">

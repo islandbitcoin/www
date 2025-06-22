@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { TestApp } from '@/test/TestApp';
-import { NoteContent } from './NoteContent';
+import { NoteContent } from '@/components/social/NoteContent';
 import type { NostrEvent } from '@nostrify/nostrify';
 
 describe('NoteContent', () => {

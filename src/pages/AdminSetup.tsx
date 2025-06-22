@@ -9,6 +9,7 @@ import { siteConfig } from '@/config/site.config';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/useToast';
+import { AdminErrorBoundary } from '@/components/ErrorBoundary';
 
 export default function AdminSetup() {
   useSeoMeta({
@@ -121,19 +122,20 @@ export default function AdminSetup() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-caribbean-sand via-white to-caribbean-sand/30 py-16">
-      <div className="container mx-auto px-4">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Admin Setup
-            </CardTitle>
-            <CardDescription>
-              Configure the first admin for the game wallet system
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+    <AdminErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-b from-caribbean-sand via-white to-caribbean-sand/30 py-16">
+        <div className="container mx-auto px-4">
+          <Card className="max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Admin Setup
+              </CardTitle>
+              <CardDescription>
+                Configure the first admin for the game wallet system
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
@@ -172,5 +174,6 @@ export default function AdminSetup() {
         </Card>
       </div>
     </div>
+    </AdminErrorBoundary>
   );
 }

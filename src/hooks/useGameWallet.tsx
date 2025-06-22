@@ -182,7 +182,7 @@ export function useGameWallet() {
   const awardSats = useCallback(async (
     amount: number,
     gameType: 'trivia' | 'stacker' | 'achievement' | 'referral',
-    gameData?: Record<string, unknown>
+    _gameData?: Record<string, unknown>
   ): Promise<boolean> => {
     if (!user) {
       toast({
@@ -202,12 +202,11 @@ export function useGameWallet() {
       return false;
     }
 
-    // Record the payout
+    // Record the payout (without gameData - data minimization)
     const payout = gameWalletManager.recordPayout({
       userPubkey: user.pubkey,
       amount,
-      gameType,
-      gameData });
+      gameType });
 
     // Update user balance directly to actual balance (not pending)
     // Since this is just internal tracking, we don't need pending state
@@ -220,8 +219,7 @@ export function useGameWallet() {
     setUserBalance(gameWalletManager.getUserBalance(user.pubkey));
     
     // Mark payout as paid since it's an internal balance update
-    gameWalletManager.updatePayoutStatus(payout.id, 'paid', {
-      paymentProof: `internal_${Date.now()}` });
+    gameWalletManager.updatePayoutStatus(payout.id, 'paid');
     
     toast({
       title: `+${amount} sats!`,
@@ -250,18 +248,14 @@ export function useGameWallet() {
     
     // Handle different withdrawal types
     const withdrawalType = destination.startsWith('pullpayment:') ? 'pullpayment' : 'unknown';
+    const pullPaymentId = withdrawalType === 'pullpayment' ? destination.replace('pullpayment:', '') : undefined;
     
     // Create a payout record
-    const gameData: Record<string, unknown> = { withdrawalType };
-    if (withdrawalType === 'pullpayment') {
-      gameData.pullPaymentId = destination.replace('pullpayment:', '');
-    }
-    
     const payout = gameWalletManager.recordPayout({
       userPubkey: user.pubkey,
       amount,
       gameType: 'withdrawal' as const,
-      gameData
+      pullPaymentId
     });
     
     // Update balance immediately (optimistic update)
@@ -279,9 +273,7 @@ export function useGameWallet() {
         description: 'Scan the QR code with your Lightning wallet to complete the withdrawal.' });
       
       // Mark as paid since pull payment handles it
-      gameWalletManager.updatePayoutStatus(payout.id, 'paid', {
-        paymentProof: `pullpayment_${gameData.pullPaymentId}`
-      });
+      gameWalletManager.updatePayoutStatus(payout.id, 'paid', pullPaymentId);
       
       // Trigger balance refresh for all components
       refreshBalance();
@@ -320,74 +312,12 @@ export function useGameWallet() {
     return gameWalletManager.getPayouts(filters);
   }, [isAdmin]);
 
-  // Process pending withdrawals (admin only)
+  // Note: Withdrawals are now handled through pull payments, not NWC
   const processPendingWithdrawals = useCallback(async () => {
-    if (!isAdmin || !config.isConnected || !config.nwcUri) return;
-    
-    const pendingPayouts = gameWalletManager.getPayouts({ status: 'pending', gameType: 'withdrawal' });
-    if (pendingPayouts.length === 0) {
-      toast({
-        title: 'No pending withdrawals',
-        description: 'All withdrawals have been processed' });
-      return;
-    }
-    
     toast({
-      title: 'Processing withdrawals...',
-      description: `Found ${pendingPayouts.length} pending withdrawals` });
-    
-    const nwcClient = getNWCClient(nostr);
-    await nwcClient.connect(config.nwcUri);
-    
-    let processed = 0;
-    let failed = 0;
-    
-    for (const payout of pendingPayouts) {
-      try {
-        const lightningAddress = payout.gameData?.lightningAddress as string;
-        if (!lightningAddress) continue;
-        
-        // Convert Lightning address to LNURL
-        const [username, domain] = lightningAddress.split('@');
-        const lnurlUrl = `https://${domain}/.well-known/lnurlp/${username}`;
-        
-        const lnurlResponse = await fetch(lnurlUrl);
-        if (!lnurlResponse.ok) throw new Error('Invalid Lightning address');
-        
-        const lnurlData = await lnurlResponse.json();
-        
-        // Request invoice
-        const callbackUrl = new URL(lnurlData.callback);
-        callbackUrl.searchParams.set('amount', (payout.amount * 1000).toString());
-        
-        const invoiceResponse = await fetch(callbackUrl.toString());
-        if (!invoiceResponse.ok) throw new Error('Failed to generate invoice');
-        
-        const invoiceData = await invoiceResponse.json();
-        if (!invoiceData.pr) throw new Error('No invoice returned');
-        
-        // Pay the invoice
-        const paymentResult = await nwcClient.payInvoice(invoiceData.pr);
-        
-        // Update payout status
-        gameWalletManager.updatePayoutStatus(payout.id, 'paid', {
-          paymentProof: paymentResult.preimage,
-          lightningAddress
-        });
-        
-        processed++;
-      } catch (error) {
-        gameWalletManager.updatePayoutStatus(payout.id, 'failed', {
-          error: error instanceof Error ? error.message : 'Payment failed'
-        });
-        failed++;
-      }
-    }
-    
-    toast({
-      title: 'Withdrawals processed',
-      description: `Processed: ${processed}, Failed: ${failed}` });
-  }, [isAdmin, config, nostr, toast]);
+      title: 'Pull payments in use',
+      description: 'Withdrawals are handled instantly via pull payments' });
+  }, [toast]);
 
   // Reset a failed withdrawal and restore balance (admin only)
   const resetWithdrawal = useCallback((payoutId: string) => {

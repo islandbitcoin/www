@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -31,7 +31,7 @@ interface Upgrade {
   maxOwned?: number;
 }
 
-export function SatoshiStacker() {
+export const SatoshiStacker = memo(function SatoshiStacker() {
   const [state, setState] = useState<StackerState>(() => {
     const saved = secureStorage.get<StackerState>('satoshiStackerState');
     return saved || {
@@ -334,4 +334,4 @@ export function SatoshiStacker() {
       </CardContent>
     </Card>
   );
-}
+});

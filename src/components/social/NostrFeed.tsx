@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuthor } from '@/hooks/useAuthor';
 import { genUserName } from '@/lib/genUserName';
-import { NoteContent } from '@/components/NoteContent';
+import { NoteContent } from '@/components/social/NoteContent';
 import { Heart, MessageCircle, Repeat2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { siteConfig } from '@/config/site.config';
