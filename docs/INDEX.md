@@ -6,21 +6,21 @@ Welcome to the Island Bitcoin documentation! This guide will help you navigate t
 
 ### Getting Started
 - [**README.md**](../README.md) - Project overview, features, and quick start guide
-- [**ROADMAP.md**](../ROADMAP.md) - Development priorities and upcoming features
+- [**ROADMAP.md**](./ROADMAP.md) - Development priorities and upcoming features
 
 ### Architecture & Development
-- [**ARCHITECTURE.md**](../ARCHITECTURE.md) - System design, component architecture, and technical details
-- [**CLAUDE.md**](../CLAUDE.md) - AI assistant context and development guidelines
+- [**ARCHITECTURE.md**](./ARCHITECTURE.md) - System design, component architecture, and technical details
+- [**CLAUDE.md**](./CLAUDE.md) - AI assistant context and development guidelines
 
 ### Deployment & Operations
-- [**DEPLOYMENT.md**](../DEPLOYMENT.md) - Complete production deployment guide
-- [**CDN_DEPLOYMENT.md**](../CDN_DEPLOYMENT.md) - CDN setup and static asset optimization
-- [**DEPLOY.md**](../DEPLOY.md) - Quick deployment reference
+- [**DEPLOYMENT.md**](./DEPLOYMENT.md) - Complete production deployment guide
+- [**CDN_DEPLOYMENT.md**](./CDN_DEPLOYMENT.md) - CDN setup and static asset optimization
+- [**DEPLOY.md**](./DEPLOY.md) - Quick deployment reference
 
 ## 🏗️ Technical Documentation
 
 ### System Design
-- [**Architecture Details**](../ARCHITECTURE.md) - Component architecture and service design
+- [**Architecture Details**](./ARCHITECTURE.md) - Component architecture and service design
 - State management patterns
 - Error handling strategies
 - Performance optimization
@@ -99,8 +99,10 @@ When adding new documentation:
 | Document | Last Updated | Status |
 |----------|--------------|--------|
 | README.md | March 2024 | ✅ Current |
+| INDEX.md | March 2024 | ✅ Current |
 | ROADMAP.md | March 2024 | ✅ Current |
 | ARCHITECTURE.md | March 2024 | ✅ Current |
+| API.md | March 2024 | ✅ Current |
 | DEPLOYMENT.md | March 2024 | ✅ Current |
 | CDN_DEPLOYMENT.md | March 2024 | ✅ Current |
 | CLAUDE.md | March 2024 | ✅ Current |

@@ -55,15 +55,16 @@ npm run dev
 ## 📚 Documentation
 
 ### Project Documentation
-- [**ROADMAP.md**](./ROADMAP.md) - Development priorities and upcoming features
-- [**CLAUDE.md**](./CLAUDE.md) - AI assistant instructions and project context
-- [**DEPLOYMENT.md**](./DEPLOYMENT.md) - Production deployment guide
-- [**CDN_DEPLOYMENT.md**](./CDN_DEPLOYMENT.md) - CDN and caching setup
+- [**Documentation Index**](./docs/INDEX.md) - Navigate all documentation
+- [**ROADMAP.md**](./docs/ROADMAP.md) - Development priorities and upcoming features
+- [**CLAUDE.md**](./docs/CLAUDE.md) - AI assistant instructions and project context
+- [**DEPLOYMENT.md**](./docs/DEPLOYMENT.md) - Production deployment guide
+- [**CDN_DEPLOYMENT.md**](./docs/CDN_DEPLOYMENT.md) - CDN and caching setup
 
 ### Technical Documentation
-- [**Architecture Overview**](#architecture-overview) - System design and components
-- [**API Reference**](#api-reference) - Backend endpoints and integration
-- [**Component Library**](#component-library) - UI components and patterns
+- [**Architecture Overview**](./docs/ARCHITECTURE.md) - System design and components
+- [**API Reference**](./docs/API.md) - Backend endpoints and integration
+- [**Component Library**](./docs/CLAUDE.md#ui-components) - UI components and patterns
 
 ## 🏗️ Architecture Overview
 
