@@ -4,3 +4,5 @@ export { OptimizedImage } from './OptimizedImage';
 export { MediaGallery } from './MediaGallery';
 export { EditProfileForm } from './EditProfileForm';
 export { PrivacySettings } from './PrivacySettings';
+export { RelayStatusIndicator } from './RelayStatusIndicator';
+export { CommunityMomentsGallery } from './CommunityMomentsGallery';

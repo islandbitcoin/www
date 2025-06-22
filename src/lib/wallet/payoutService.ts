@@ -83,8 +83,7 @@ export class PayoutService {
     );
 
     secureStorage.set("gamePayouts", filtered);
-    console.log(`🧹 Cleaned up ${payouts.length - filtered.length} old payouts`);
-  }
+    }
 
   // Withdrawal management
   resetWithdrawal(payoutId: string): boolean {
@@ -98,7 +97,6 @@ export class PayoutService {
     // Update status to failed
     this.updatePayoutStatus(payoutId, "failed");
     
-    console.log(`💸 Reset withdrawal ${payoutId}`);
     return true;
   }
 

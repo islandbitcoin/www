@@ -13,7 +13,6 @@ import { NostrLoginProvider } from '@nostrify/react/login';
 import { AppProvider } from '@/components/AppProvider';
 import { AppConfig } from '@/contexts/AppContext';
 import AppRouter from './AppRouter';
-import { CaribbeanProfileProvider } from '@/components/CaribbeanProfileProvider';
 import { ServiceWorkerProvider } from '@/components/ServiceWorkerProvider';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -35,14 +34,18 @@ const queryClient = new QueryClient({
 
 const defaultConfig: AppConfig = {
   theme: "light",
-  relayUrl: "wss://relay.nostr.band",
+  relayUrl: "wss://relay.primal.net",
 };
 
 const presetRelays = [
-  { url: 'wss://ditto.pub/relay', name: 'Ditto' },
   { url: 'wss://relay.nostr.band', name: 'Nostr.Band' },
   { url: 'wss://relay.damus.io', name: 'Damus' },
   { url: 'wss://relay.primal.net', name: 'Primal' },
+  { url: 'wss://nos.lol', name: 'nos.lol' },
+  { url: 'wss://relay.snort.social', name: 'Snort' },
+  { url: 'wss://nostr.wine', name: 'Nostr.Wine' },
+  { url: 'wss://relay.mostr.pub', name: 'Mostr' },
+  { url: 'wss://nostr.bitcoiner.social', name: 'Bitcoiner.Social' },
 ];
 
 export function App() {
@@ -60,13 +63,11 @@ export function App() {
               <NostrProvider>
                 <TooltipProvider>
                   <ServiceWorkerProvider>
-                    <CaribbeanProfileProvider>
-                      <Toaster />
-                      <Sonner />
-                      <Suspense>
-                        <AppRouter />
-                      </Suspense>
-                    </CaribbeanProfileProvider>
+                    <Toaster />
+                    <Sonner />
+                    <Suspense>
+                      <AppRouter />
+                    </Suspense>
                   </ServiceWorkerProvider>
                 </TooltipProvider>
               </NostrProvider>

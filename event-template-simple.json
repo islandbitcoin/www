@@ -1,0 +1,43 @@
+{
+  "_comment": "Island Bitcoin Event Submission Template (Simple Version) - * indicates required fields",
+  "_instructions": "Delete any sections that don't apply to your event",
+  
+  "event": {
+    "basic_info": {
+      "title": "* Your Event Title",
+      "description": "* What's your event about? What will attendees learn or do?",
+      "type": "* meetup | workshop | conference | social | online"
+    },
+    
+    "when": {
+      "date": "* 2024-04-15",
+      "start_time": "* 18:00",
+      "end_time": "* 21:00",
+      "timezone": "* America/Barbados"
+    },
+    
+    "where": {
+      "venue_name": "* Location Name or 'Online'",
+      "address": "* Full address or meeting link",
+      "city": "* City",
+      "country": "* Country"
+    },
+    
+    "registration": {
+      "required": true,
+      "how_to_register": "* Email events@example.com or link to registration",
+      "capacity": 50,
+      "fee": "Free or amount in USD"
+    },
+    
+    "contact": {
+      "organizer_name": "* Your Name or Organization",
+      "email": "* your-email@example.com",
+      "phone": "Optional phone number"
+    },
+    
+    "images": {
+      "main_image": "* event-banner.jpg (upload to /events folder)"
+    }
+  }
+}

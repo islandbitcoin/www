@@ -80,15 +80,6 @@ export async function generateWithdrawalQR(
   userPubkey?: string
 ): Promise<{ qrCodeUrl: string; lnurl: string; pullPaymentId: string } | null> {
   try {
-    console.log('🔗 generateWithdrawalQR called with config:', {
-      hasStoreId: !!config.storeId,
-      storeId: config.storeId,
-      hasApiKey: !!config.apiKey,
-      apiKeyLength: config.apiKey?.length,
-      hasPullPaymentId: !!config.pullPaymentId,
-      serverUrl: config.serverUrl
-    });
-    
     // Validate amount
     if (amount <= 0) {
       throw new Error('Withdrawal amount must be greater than 0');
@@ -98,10 +89,6 @@ export async function generateWithdrawalQR(
     
     // If API credentials are provided, create a unique pull payment
     if (config.storeId && config.apiKey) {
-      console.log('🔗 Creating unique pull payment for amount:', amount);
-      console.log('🔗 Using Store ID:', config.storeId);
-      console.log('🔗 Using Server URL:', config.serverUrl);
-      
       const btcpayClient = new BTCPayApiClient(config.serverUrl, config.storeId, config.apiKey);
       
       // Create a pull payment with exact amount (both min and max set to same value)
@@ -117,12 +104,10 @@ export async function generateWithdrawalQR(
       });
       
       pullPaymentId = pullPayment.id;
-      console.log('🔗 Created pull payment:', pullPaymentId);
-    } else if (config.pullPaymentId) {
+      } else if (config.pullPaymentId) {
       // Fall back to shared pull payment (legacy)
       pullPaymentId = config.pullPaymentId;
-      console.log('🔗 Using shared pull payment:', pullPaymentId);
-    } else {
+      } else {
       throw new Error('No pull payment configuration available');
     }
     
@@ -132,10 +117,8 @@ export async function generateWithdrawalQR(
     // Properly encode as LNURL using bech32
     const lnurl = encodeLnurl(lnurlEndpoint);
     
-    // Log the URL for debugging
-    console.log('🔗 LNURL endpoint:', lnurlEndpoint);
-    console.log('🔗 Encoded LNURL:', lnurl);
-    
+    // Log the URL for debugging but mask sensitive data
+    // const maskedEndpoint = lnurlEndpoint.replace(/\/pp\/[^/]+/, '/pp/***');
     // Generate QR code with lowercase LNURL (better compatibility)
     const qrCodeUrl = await QRCode.toDataURL(lnurl, {
       width: 300,

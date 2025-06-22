@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useSeoMeta } from '@unhead/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -28,6 +29,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useAuthor } from '@/hooks/useAuthor';
 import { useToast } from '@/hooks/useToast';
 import { AdminErrorBoundary } from '@/components/ErrorBoundary';
+import { useLoginActions } from '@/hooks/useLoginActions';
 
 // Payouts table component
 function PayoutsTable() {
@@ -341,6 +343,7 @@ export default function Admin() {
 
   const { user } = useCurrentUser();
   const { toast } = useToast();
+  const loginActions = useLoginActions();
   const {
     config,
     isAdmin,
@@ -349,9 +352,127 @@ export default function Admin() {
     awardSats,
     getResetableWithdrawals,
     resetWithdrawal,
-    userBalance,
-    canUserEarnMore,
-    userDailyTotal } = useGameWallet();
+    canUserEarnMore } = useGameWallet();
+  
+  const [isReconnecting, setIsReconnecting] = useState(false);
+  
+  // Check if browser extension is available
+  const hasExtension = typeof window !== 'undefined' && window.nostr;
+  
+  // Auto-reconnect with extension on mount
+  useEffect(() => {
+    const tryAutoReconnect = async () => {
+      // Only try auto-reconnect if no user is logged in and extension is available
+      if (!user && hasExtension && !isReconnecting) {
+        try {
+          setIsReconnecting(true);
+          
+          // First check if extension is authorized by trying to get public key
+          const pubkey = await window.nostr?.getPublicKey();
+          
+          if (pubkey) {
+            // Check if this pubkey is an admin
+            const isAdminPubkey = config.adminPubkeys.includes(pubkey);
+            
+            if (isAdminPubkey) {
+              // Extension is authorized and user is admin, complete the login
+              await loginActions.extension();
+              
+              // Don't reload immediately - let the state update propagate
+              // The component will re-render when user state changes
+            } else {
+              // User is not an admin
+              setIsReconnecting(false);
+            }
+          }
+        } catch {
+          // Extension not authorized or other error
+          setIsReconnecting(false);
+        }
+      }
+    };
+    
+    // Small delay to ensure component is fully mounted
+    const timer = setTimeout(tryAutoReconnect, 100);
+    
+    return () => clearTimeout(timer);
+  }, [hasExtension, config.adminPubkeys]); // Add minimal dependencies
+  
+  // When user state changes, turn off reconnecting
+  useEffect(() => {
+    if (user && isReconnecting) {
+      setIsReconnecting(false);
+    }
+  }, [user, isReconnecting]);
+
+  // Show reconnect button for browser extension users
+  if (!user && hasExtension && !isReconnecting) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-caribbean-sand via-white to-caribbean-sand/30 py-16">
+        <div className="container mx-auto px-4">
+          <Card className="max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Quick Login Required
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">
+                Your browser extension needs to authorize this page to access admin features.
+              </p>
+              <Button 
+                onClick={async () => {
+                  setIsReconnecting(true);
+                  try {
+                    await loginActions.extension();
+                    // Give it a moment to update state before reloading
+                    setTimeout(() => {
+                      window.location.reload();
+                    }, 500);
+                  } catch (error) {
+                    console.error('Extension login error:', error);
+                    toast({
+                      title: 'Login failed',
+                      description: error instanceof Error ? error.message : 'Please make sure your browser extension is unlocked and try again.',
+                      variant: 'destructive'
+                    });
+                    setIsReconnecting(false);
+                  }
+                }}
+                className="w-full bg-caribbean-ocean hover:bg-caribbean-ocean/90"
+                disabled={isReconnecting}
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                Authorize with Browser Extension
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                Browser extensions require authorization on each page for security.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+  
+  // Show loading state while reconnecting
+  if (isReconnecting) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-caribbean-sand via-white to-caribbean-sand/30 py-16">
+        <div className="container mx-auto px-4">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="py-8">
+              <div className="flex flex-col items-center gap-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-caribbean-ocean"></div>
+                <p className="text-muted-foreground">Reconnecting with browser extension...</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (!user || !isAdmin) {
     const hasAdmins = config.adminPubkeys.length > 0;
@@ -434,38 +555,6 @@ export default function Admin() {
                 <p className="text-xs text-muted-foreground mt-1">
                   {config.pullPaymentId ? "Instant QR code withdrawals" : "Configure pull payments below"}
                 </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Debug Info Card */}
-        <Card className="mb-6 border-blue-200 bg-blue-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-800">
-              <AlertCircle className="h-5 w-5" />
-              Debug Info
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 text-sm">
-              <div>
-                <strong>Your Balance:</strong> {userBalance?.balance || 0} sats
-              </div>
-              <div>
-                <strong>Your Daily Total:</strong> {userDailyTotal} sats
-              </div>
-              <div>
-                <strong>Can Earn More:</strong> {canUserEarnMore.allowed ? 'Yes' : `No - ${canUserEarnMore.reason}`}
-              </div>
-              <div>
-                <strong>Max Daily Per User:</strong> {config.maxPayoutPerUser} sats
-              </div>
-              <div>
-                <strong>Max Daily Total:</strong> {config.maxDailyPayout} sats
-              </div>
-              <div>
-                <strong>Min Withdrawal:</strong> {config.minWithdrawal} sats
               </div>
             </div>
           </CardContent>
@@ -734,19 +823,7 @@ export default function Admin() {
                       size="sm"
                       onClick={async () => {
                         if (user) {
-                          console.log('🎯 Attempting to award 100 sats to user:', user.pubkey);
-                          console.log('🎯 Current balance:', userBalance?.balance || 0);
-                          console.log('🎯 User daily total:', userDailyTotal);
-                          console.log('🎯 Can earn more:', canUserEarnMore);
-                          console.log('🎯 Config limits:', {
-                            maxDailyPayout: config.maxDailyPayout,
-                            maxPayoutPerUser: config.maxPayoutPerUser,
-                            minWithdrawal: config.minWithdrawal
-                          });
-                          
                           const success = await awardSats(100, 'trivia', { test: true, reason: 'Admin test award' });
-                          console.log('🎯 Award result:', success);
-                          
                           if (success) {
                             toast({
                               title: 'Test sats awarded',
@@ -770,8 +847,6 @@ export default function Admin() {
                       size="sm"
                       onClick={() => {
                         const resetableWithdrawals = getResetableWithdrawals();
-                        console.log('🔄 Found resetable withdrawals:', resetableWithdrawals);
-                        
                         if (resetableWithdrawals.length === 0) {
                           toast({
                             title: 'No withdrawals to reset',

@@ -5,3 +5,5 @@ export { NostrPostBox } from './NostrPostBox';
 export { NotificationBell } from './NotificationBell';
 export { ContactButton } from './ContactButton';
 export { NoteContent } from './NoteContent';
+export { MessageButton } from './MessageButton';
+export { NewMessageDialog } from './NewMessageDialog';

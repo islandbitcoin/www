@@ -24,9 +24,7 @@ export class ConfigService {
   }
 
   async saveConfig(updates: Partial<GameWalletConfig>) {
-    console.log('🔧 saveConfig called with updates:', updates);
     this.config = { ...this.config, ...updates };
-    console.log('🔧 New config after merge:', this.config);
     secureStorage.set("gameWalletConfig", this.config);
     
     // Sync all config changes to server
@@ -41,12 +39,9 @@ export class ConfigService {
   // Sync configuration to server
   private async syncConfigToServer(updates: Partial<GameWalletConfig>) {
     try {
-      console.log('🔄 Starting full config sync to server...', updates);
-      
       // Check if server is available
       const serverOnline = await configSyncService.checkServerHealth();
       if (!serverOnline) {
-        console.warn('❌ Sync server offline, config will only be local');
         return;
       }
 
@@ -70,14 +65,13 @@ export class ConfigService {
 
       // Only sync if we have fields to update
       if (Object.keys(syncConfig).length > 0) {
-        console.log('📤 Saving config to server...', syncConfig);
         const success = await configSyncService.saveFullConfig(syncConfig);
         if (success) {
-          console.log('✅ Config synced to server successfully');
+          // Config synced successfully
         } else {
           console.error('❌ Failed to sync config to server');
-        }
       }
+    }
     } catch (error) {
       console.error('❌ Failed to sync config:', error);
     }
@@ -94,22 +88,16 @@ export class ConfigService {
   // Load full config from sync server
   async loadConfigFromServer(): Promise<boolean> {
     try {
-      console.log('📥 Loading config from server...');
-      
       // Check if server is available
       const serverOnline = await configSyncService.checkServerHealth();
       if (!serverOnline) {
-        console.warn('❌ Sync server offline, using local config');
         return false;
       }
 
       const serverConfig = await configSyncService.getConfig();
       if (!serverConfig) {
-        console.log('📭 No config found on server');
         return false;
       }
-
-      console.log('📥 Server config loaded:', serverConfig);
 
       // Convert server config to GameWalletConfig format
       const mergedConfig: Partial<GameWalletConfig> = {};
@@ -124,7 +112,9 @@ export class ConfigService {
       if (serverConfig.withdrawalFee !== undefined && serverConfig.withdrawalFee !== null) mergedConfig.withdrawalFee = serverConfig.withdrawalFee;
       if (serverConfig.gameRewards) mergedConfig.gameRewards = serverConfig.gameRewards;
       if (serverConfig.rateLimits) mergedConfig.rateLimits = serverConfig.rateLimits;
-      if (serverConfig.adminPubkeys) mergedConfig.adminPubkeys = serverConfig.adminPubkeys;
+      if (serverConfig.adminPubkeys) {
+        mergedConfig.adminPubkeys = serverConfig.adminPubkeys;
+      }
       if (serverConfig.requireApprovalAbove !== undefined && serverConfig.requireApprovalAbove !== null) mergedConfig.requireApprovalAbove = serverConfig.requireApprovalAbove;
       if (serverConfig.maintenanceMode !== undefined && serverConfig.maintenanceMode !== null) mergedConfig.maintenanceMode = serverConfig.maintenanceMode;
 
@@ -132,7 +122,6 @@ export class ConfigService {
       this.config = { ...this.config, ...mergedConfig };
       secureStorage.set("gameWalletConfig", this.config);
       
-      console.log('✅ Config loaded and merged from server');
       return true;
     } catch (error) {
       console.error('❌ Failed to load config from server:', error);

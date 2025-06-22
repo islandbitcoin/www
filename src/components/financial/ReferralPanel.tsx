@@ -18,9 +18,11 @@ import {
 import { useReferral } from '@/hooks/useReferral';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
+import { useGameWallet } from '@/hooks/useGameWallet';
 
 export function ReferralPanel() {
   const { user } = useCurrentUser();
+  const { config } = useGameWallet();
   const { 
     stats, 
     referralLink, 
@@ -28,6 +30,9 @@ export function ReferralPanel() {
     shareReferralLink 
   } = useReferral();
   const [copied, setCopied] = useState(false);
+  
+  const referralReward = config.gameRewards?.referralBonus || 100;
+  const signupBonus = Math.floor(referralReward * 0.25);
 
   const handleCopy = () => {
     copyReferralLink();
@@ -44,7 +49,7 @@ export function ReferralPanel() {
             Referral Program
           </CardTitle>
           <CardDescription>
-            Earn 100 sats for each friend who joins and plays!
+            Earn {referralReward} sats for each friend who joins and plays!
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -135,7 +140,7 @@ export function ReferralPanel() {
               <div>
                 <p className="font-medium">Share your link</p>
                 <p className="text-muted-foreground">
-                  Friends get 25 sats when they sign up
+                  Friends get {signupBonus} sats when they sign up
                 </p>
               </div>
             </div>
@@ -144,7 +149,7 @@ export function ReferralPanel() {
               <div>
                 <p className="font-medium">They play a game</p>
                 <p className="text-muted-foreground">
-                  After their first game, you earn 100 sats
+                  After their first game, you earn {referralReward} sats
                 </p>
               </div>
             </div>

@@ -20,8 +20,13 @@ export interface LegacyTriviaQuestion {
 export interface GitHubTriviaQuestion {
   id: string;
   question: string;
-  options: string[];
-  correct_answer: 'A' | 'B' | 'C' | 'D';
+  options: {
+    a: string;
+    b: string;
+    c: string;
+    d: string;
+  };
+  correct_answer: 'a' | 'b' | 'c' | 'd';
   difficulty: number; // 1-10 scale
   level: number; // 1-21 progression
   category: string; // More categories available
@@ -173,8 +178,8 @@ export function isLegacyQuestion(question: unknown): question is LegacyTriviaQue
 
 // Conversion utilities
 export function convertGitHubToUnified(github: GitHubTriviaQuestion): TriviaQuestion {
-  const letterToIndex = (letter: 'A' | 'B' | 'C' | 'D'): number => {
-    return letter.charCodeAt(0) - 'A'.charCodeAt(0);
+  const letterToIndex = (letter: 'a' | 'b' | 'c' | 'd'): number => {
+    return letter.charCodeAt(0) - 'a'.charCodeAt(0);
   };
 
   const mapDifficulty = (numeric: number): 'easy' | 'medium' | 'hard' => {
@@ -183,16 +188,44 @@ export function convertGitHubToUnified(github: GitHubTriviaQuestion): TriviaQues
     return 'hard';
   };
 
+  // Convert options object to array
+  let options: string[] = [];
+  if (github.options && typeof github.options === 'object') {
+    options = [
+      github.options.a || '',
+      github.options.b || '',
+      github.options.c || '',
+      github.options.d || ''
+    ];
+  }
+  
+  // Add validation to ensure we have 4 options
+  if (options.length !== 4 || options.some(opt => !opt)) {
+    // Invalid question format - return default values
+    return {
+      id: github.id || '',
+      question: github.question || '',
+      options: ['', '', '', ''],
+      correctAnswer: 0,
+      explanation: github.explanation || '',
+      difficulty: 'easy',
+      numericDifficulty: github.difficulty || 5,
+      category: github.category || 'general',
+      level: github.level || 1,
+      isFromGitHub: true,
+    };
+  }
+
   return {
-    id: github.id,
-    question: github.question,
-    options: github.options,
-    correctAnswer: letterToIndex(github.correct_answer),
-    explanation: github.explanation,
-    difficulty: mapDifficulty(github.difficulty),
-    numericDifficulty: github.difficulty,
-    category: github.category,
-    level: github.level,
+    id: github.id || '',
+    question: github.question || '',
+    options: options,
+    correctAnswer: github.correct_answer ? letterToIndex(github.correct_answer) : 0,
+    explanation: github.explanation || '',
+    difficulty: mapDifficulty(github.difficulty || 5),
+    numericDifficulty: github.difficulty || 5,
+    category: github.category || 'general',
+    level: github.level || 1,
     isFromGitHub: true,
   };
 }

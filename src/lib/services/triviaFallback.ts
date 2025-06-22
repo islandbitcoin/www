@@ -17,8 +17,8 @@ const mapDifficultyToNumeric = (difficulty: 'easy' | 'medium' | 'hard'): number 
 };
 
 // Convert answer index to letter
-const indexToLetter = (index: number): 'A' | 'B' | 'C' | 'D' => {
-  return String.fromCharCode('A'.charCodeAt(0) + index) as 'A' | 'B' | 'C' | 'D';
+const indexToLetter = (index: number): 'a' | 'b' | 'c' | 'd' => {
+  return String.fromCharCode('a'.charCodeAt(0) + index) as 'a' | 'b' | 'c' | 'd';
 };
 
 // Estimate level from question ID
@@ -36,7 +36,12 @@ export function convertLegacyToGitHub(): GitHubQuestion[] {
   return TRIVIA_QUESTIONS.map(q => ({
     id: q.id,
     question: q.question,
-    options: q.options,
+    options: {
+      a: q.options[0] || '',
+      b: q.options[1] || '',
+      c: q.options[2] || '',
+      d: q.options[3] || ''
+    },
     correct_answer: indexToLetter(q.correctAnswer),
     difficulty: mapDifficultyToNumeric(q.difficulty),
     level: estimateLevel(q.id),

@@ -3,12 +3,6 @@
  */
 
 export interface GameWalletConfig {
-  // NWC Connection
-  nwcUri?: string;
-  isConnected: boolean;
-  walletBalance?: number;
-  lastBalanceCheck?: string;
-
   // Payout Settings
   maxDailyPayout: number; // Total sats per day across all games
   maxPayoutPerUser: number; // Max sats per user per day
@@ -84,7 +78,6 @@ export interface PayoutRequest {
 
 // Default configuration
 export const DEFAULT_CONFIG: GameWalletConfig = {
-  isConnected: false,
   maxDailyPayout: 10000, // 10k sats per day total
   maxPayoutPerUser: 1000, // 1k sats per user per day
   minWithdrawal: 100, // 100 sats minimum

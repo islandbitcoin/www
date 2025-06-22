@@ -38,7 +38,6 @@ export function useNotifications() {
   // Request notification permission
   const requestPermission = useCallback(async () => {
     if (!('Notification' in window)) {
-      console.log('This browser does not support notifications');
       return false;
     }
 

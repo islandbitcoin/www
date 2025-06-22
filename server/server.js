@@ -176,13 +176,16 @@ app.get('/api/config', authenticateAPI, async (req, res) => {
       await cache.set(CONFIG_CACHE_KEY, gameConfig, CONFIG_CACHE_TTL);
     }
 
+    // Log request without sensitive data
+    console.log('📤 Config requested from:', req.ip);
+
     res.json({
       success: true,
       data: gameConfig,
       cached: false
     });
   } catch (error) {
-    console.error('❌ Error getting config:', error);
+    console.error('❌ Error getting config:', error.message);
     // Fallback to in-memory config
     res.json({
       success: true,
@@ -232,7 +235,14 @@ app.post('/api/config', authenticateAPI, configLimiter, validateConfigUpdate, ha
   // Set new config in cache
   await cache.set(CONFIG_CACHE_KEY, gameConfig, CONFIG_CACHE_TTL);
   
-  console.log('Configuration updated:', gameConfig);
+  // Log configuration update without sensitive data
+  const safeConfig = {
+    ...gameConfig,
+    btcPayApiKey: gameConfig.btcPayApiKey ? '***' : null,
+    pullPaymentId: gameConfig.pullPaymentId ? '***' : null,
+    adminPubkeys: gameConfig.adminPubkeys ? `[${gameConfig.adminPubkeys.length} admins]` : null
+  };
+  console.log('Configuration updated:', safeConfig);
   console.log('🗑️ Cache invalidated and refreshed');
   
   res.json({

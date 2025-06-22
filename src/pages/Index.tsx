@@ -3,23 +3,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Image, Users, Zap, Menu, Settings as SettingsIcon } from "lucide-react";
 import { useState } from "react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LoginArea } from "@/components/auth/LoginArea";
 import { Link } from "react-router-dom";
-import { NostrFeed, NostrPostBox, NotificationBell, DirectMessages, ContactButton } from "@/components/social";
+import { NotificationBell, DirectMessages, ContactButton } from "@/components/social";
+import { CommunityFeedSidebar } from "@/components/sidebar/CommunityFeedSidebar";
+import { RelayStatusIndicator } from "@/components/common/RelayStatusIndicator";
 import { siteConfig } from "@/config/site.config";
-import { BitcoinPrice } from "@/components/financial";
-import { MediaGallery } from "@/components/lazy";
+import { CommunityMomentsGallery } from "@/components/common";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { StreakDisplay } from "@/components/games";
 import { BitcoinGames } from "@/components/lazy";
 import { LazyWrapper, loadingSkeletons } from "@/components/LazyWrapper";
-import { SocialErrorBoundary, GameErrorBoundary } from "@/components/ErrorBoundary";
+import { GameErrorBoundary } from "@/components/ErrorBoundary";
 
 const Index = () => {
   useSeoMeta({
     title: `${siteConfig.name} - ${siteConfig.community.location} Bitcoin Community`,
-    description: siteConfig.description });
+    description: siteConfig.description,
+  });
 
   const [isNostrFeedOpen, setIsNostrFeedOpen] = useState(false);
   const { user } = useCurrentUser();
@@ -31,12 +31,14 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold bg-gradient-to-r from-caribbean-sunset to-caribbean-mango bg-clip-text text-transparent">
-                {siteConfig.name}
-              </span>
-              <Zap className="w-5 h-5 text-caribbean-mango" />
+              <img
+                src="https://raw.githubusercontent.com/islandbitcoin/islandbitcoin-community/4cfeb962c33fff5e6f5561c37ddca3c469c25793/gallery/Island%20Bitcoin%20Logo.jpg"
+                alt="Island Bitcoin Logo"
+                className="h-16 w-16 rounded-full"
+              />
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
+              <RelayStatusIndicator className="hidden sm:flex" />
               {user && (
                 <>
                   <DirectMessages />
@@ -49,32 +51,14 @@ const Index = () => {
                 </>
               )}
               <LoginArea className="max-w-40" />
-              <Sheet open={isNostrFeedOpen} onOpenChange={setIsNostrFeedOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="border-caribbean-ocean text-caribbean-ocean hover:bg-caribbean-ocean/10">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-full sm:w-[400px] p-0 overflow-y-auto">
-                  <div className="min-h-full">
-                    <div className="sticky top-0 z-10 bg-white border-b border-caribbean-sand">
-                      <div className="p-4">
-                        <h3 className="text-lg font-semibold">Community Feed</h3>
-                        <div className="flex items-center gap-3 mt-2">
-                          {siteConfig.features.bitcoinPrice && <BitcoinPrice compact />}
-                          {user && <StreakDisplay compact />}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-4 space-y-4">
-                      <SocialErrorBoundary>
-                        <NostrPostBox />
-                        <NostrFeed limit={10} />
-                      </SocialErrorBoundary>
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
+              <Button
+                variant="outline"
+                size="icon"
+                className="border-caribbean-ocean text-caribbean-ocean hover:bg-caribbean-ocean/10"
+                onClick={() => setIsNostrFeedOpen(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
             </div>
           </div>
         </div>
@@ -129,42 +113,42 @@ const Index = () => {
             {/* Event Cards */}
             <Card className="hover:shadow-lg transition-shadow border-caribbean-sand hover:border-caribbean-ocean/30">
               <CardHeader>
-                <CardTitle className="text-caribbean-ocean">Bitcoin Beach BBQ</CardTitle>
-                <CardDescription>Kingston, Jamaica • March 15</CardDescription>
+                <CardTitle className="text-caribbean-ocean">Kingston Bitcoin Meetup</CardTitle>
+                <CardDescription>Kingston, Jamaica • Every Last Thursday</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-600">Learn about Bitcoin while enjoying jerk chicken and island vibes. Perfect for beginners!</p>
+                <p className="text-sm text-gray-600">Learn about bitcoin while enjoying Jamaican food and an open bar. Perfect for beginners!</p>
                 <div className="mt-4 flex items-center gap-2 text-sm text-caribbean-palm">
                   <Users className="h-4 w-4" />
-                  <span>25 attending</span>
+                  <span>Social Meetup</span>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="hover:shadow-lg transition-shadow border-caribbean-sand hover:border-caribbean-ocean/30">
               <CardHeader>
-                <CardTitle className="text-caribbean-ocean">Lightning Workshop</CardTitle>
-                <CardDescription>Bridgetown, Barbados • March 22</CardDescription>
+                <CardTitle className="text-caribbean-ocean">Bitcoin Pizza Day</CardTitle>
+                <CardDescription>Kingston, Jamaica • May 22nd, 2026</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-600">Hands-on workshop: Set up your first Lightning node and start accepting sats instantly.</p>
+                <p className="text-sm text-gray-600"> Celebrate Bitcoin Pizza Day with us! Enjoy free pizza, drinks, and a chance to win prizes.</p>
                 <div className="mt-4 flex items-center gap-2 text-sm text-caribbean-palm">
                   <Zap className="h-4 w-4" />
-                  <span>Lightning Network</span>
+                  <span>Special Event</span>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="hover:shadow-lg transition-shadow border-caribbean-sand hover:border-caribbean-ocean/30">
               <CardHeader>
-                <CardTitle className="text-caribbean-ocean">Satoshi Saturdays</CardTitle>
-                <CardDescription>Port of Spain, T&T • Every Saturday</CardDescription>
+                <CardTitle className="text-caribbean-ocean">Trezor Academy Workshop</CardTitle>
+                <CardDescription>Ocho Rios, Jamaica • TBD</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-600">Weekly Bitcoin education sessions. Come learn, share, and orange pill your community!</p>
+                <p className="text-sm text-gray-600">Learn how to secure your Bitcoin with Trezor hardware wallets. Hands-on workshop for all levels.</p>
                 <div className="mt-4 flex items-center gap-2 text-sm text-caribbean-palm">
                   <Calendar className="h-4 w-4" />
-                  <span>Weekly Event</span>
+                  <span>Workshop</span>
                 </div>
               </CardContent>
             </Card>
@@ -239,83 +223,7 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
           </div>
 
           <LazyWrapper fallback={loadingSkeletons.default}>
-            <MediaGallery
-            items={[
-              {
-                id: "1",
-                url: "https://images.unsplash.com/photo-1550785274-eb15d7b41e98?w=800",
-                thumbnail: "https://images.unsplash.com/photo-1550785274-eb15d7b41e98?w=400",
-                title: "Bitcoin Beach Meetup",
-                description: "Community gathering at sunset",
-                author: "Island Bitcoin",
-                date: "March 2024",
-                type: "image" as const },
-              {
-                id: "2",
-                url: "https://images.unsplash.com/photo-1519452575417-564c1401ecc0?w=800",
-                thumbnail: "https://images.unsplash.com/photo-1519452575417-564c1401ecc0?w=400",
-                title: "Lightning Workshop",
-                description: "Learning to set up Lightning nodes",
-                author: "Community",
-                date: "March 2024",
-                type: "image" as const },
-              {
-                id: "3",
-                url: "https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?w=800",
-                thumbnail: "https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?w=400",
-                title: "Caribbean Bitcoin Conference",
-                description: "Annual gathering of Bitcoin enthusiasts",
-                author: "Island Bitcoin",
-                date: "February 2024",
-                type: "image" as const },
-              {
-                id: "4",
-                url: "https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=800",
-                thumbnail: "https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=400",
-                title: "Beach Networking",
-                description: "Making connections on island time",
-                author: "Community",
-                date: "February 2024",
-                type: "image" as const },
-              {
-                id: "5",
-                url: "https://images.unsplash.com/photo-1476304884326-cd2c88572c5f?w=800",
-                thumbnail: "https://images.unsplash.com/photo-1476304884326-cd2c88572c5f?w=400",
-                title: "Sunset Sessions",
-                description: "Evening discussions about Bitcoin",
-                author: "Island Bitcoin",
-                date: "January 2024",
-                type: "image" as const },
-              {
-                id: "6",
-                url: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800",
-                thumbnail: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400",
-                title: "Island Vibes",
-                description: "Bitcoin culture in paradise",
-                author: "Community",
-                date: "January 2024",
-                type: "image" as const },
-              {
-                id: "7",
-                url: "https://images.unsplash.com/photo-1533106418989-88406c7cc8ca?w=800",
-                thumbnail: "https://images.unsplash.com/photo-1533106418989-88406c7cc8ca?w=400",
-                title: "Community BBQ",
-                description: "Food, friends, and Bitcoin",
-                author: "Island Bitcoin",
-                date: "December 2023",
-                type: "image" as const },
-              {
-                id: "8",
-                url: "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800",
-                thumbnail: "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=400",
-                title: "Paradise Found",
-                description: "Where Bitcoin meets the beach",
-                author: "Community",
-                date: "December 2023",
-                type: "image" as const },
-            ]}
-            className="max-w-6xl mx-auto"
-          />
+            <CommunityMomentsGallery className="max-w-6xl mx-auto" />
           </LazyWrapper>
 
           <div className="text-center mt-8">
@@ -400,15 +308,14 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
                   Media Kit
                 </Button>
               </a>
-              <ContactButton 
-                variant="ghost" 
-                size="sm" 
-                className="text-caribbean-ocean hover:text-caribbean-ocean/80 text-xs sm:text-sm" 
-              />
+              <ContactButton variant="ghost" size="sm" className="text-caribbean-ocean hover:text-caribbean-ocean/80 text-xs sm:text-sm" />
             </div>
           </div>
         </div>
       </footer>
+
+      {/* Community Feed Sidebar */}
+      <CommunityFeedSidebar isOpen={isNostrFeedOpen} onOpenChange={setIsNostrFeedOpen} />
     </div>
   );
 };

@@ -65,8 +65,17 @@ export const BitcoinTrivia = memo(function BitcoinTrivia() {
   const questionsError = questionsQuery.error;
   const refetchQuestions = questionsQuery.refetch;
 
-  // Convert GitHub questions to unified format
-  const unifiedQuestions = levelQuestions.map(convertGitHubToUnified);
+  // Convert GitHub questions to unified format with validation
+  const unifiedQuestions = levelQuestions
+    .map(convertGitHubToUnified)
+    .filter(q => {
+      // Validate that the question has all required fields
+      return q.question && 
+             Array.isArray(q.options) && 
+             q.options.length === 4 &&
+             typeof q.correctAnswer === 'number' &&
+             q.explanation;
+    });
   
   // Get a random question that hasn't been answered yet in current level
   const getNextQuestion = () => {
@@ -283,6 +292,24 @@ export const BitcoinTrivia = memo(function BitcoinTrivia() {
               Try Again
             </Button>
           </div>
+        ) : unifiedQuestions.length === 0 && !isQuestionsLoading ? (
+          // No valid questions found
+          <div className="space-y-3">
+            <Alert className="border-yellow-200 bg-yellow-50">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription>
+                No valid questions found for this level. The questions may be loading or unavailable.
+              </AlertDescription>
+            </Alert>
+            <Button 
+              onClick={() => refetchQuestions()} 
+              variant="outline"
+              className="w-full"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Retry Loading Questions
+            </Button>
+          </div>
         ) : currentQuestion ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -297,7 +324,8 @@ export const BitcoinTrivia = memo(function BitcoinTrivia() {
             
             {/* Answer Options */}
             <div className="space-y-2">
-              {currentQuestion.options.map((option, index) => {
+              {currentQuestion.options && Array.isArray(currentQuestion.options) ? 
+                currentQuestion.options.map((option, index) => {
               const isSelected = selectedAnswer === index;
               const isCorrect = index === currentQuestion.correctAnswer;
               const showCorrect = showResult && isCorrect;
@@ -323,7 +351,11 @@ export const BitcoinTrivia = memo(function BitcoinTrivia() {
                   </span>
                 </Button>
               );
-            })}
+            }) : (
+              <div className="text-center text-muted-foreground">
+                No answer options available
+              </div>
+            )}
           </div>
           
           {/* Explanation */}

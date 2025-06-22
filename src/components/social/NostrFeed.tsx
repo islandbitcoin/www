@@ -1,7 +1,26 @@
-import { useNostr } from '@nostrify/react';
-import { useQuery } from '@tanstack/react-query';
+/**
+ * NostrFeed Component
+ * 
+ * A flexible Nostr feed component that supports multiple feed modes:
+ * 
+ * - 'community': Shows only posts from users with verified nip05 addresses matching configured domains
+ * - 'general': Shows general kind-1 events from any users  
+ * - 'hybrid': Prioritizes community posts, falls back to general posts when community is quiet
+ * 
+ * Props:
+ * - domains: Array of community domains to filter by (defaults to siteConfig.nostr.communityDomains)
+ * - limit: Maximum number of posts to show (default: 50)
+ * - mode: Feed mode - 'community' | 'general' | 'hybrid' (default: 'hybrid')
+ * - showDebugInfo: Show debug information about feed status (default: false)
+ * 
+ * The hybrid mode will show general posts when fewer than 5 community posts are found,
+ * ensuring the feed always has content. Community posts are marked with a "Community" badge
+ * in hybrid mode to help users distinguish sources.
+ */
+
 import { NostrEvent } from '@nostrify/nostrify';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
@@ -11,17 +30,33 @@ import { NoteContent } from '@/components/social/NoteContent';
 import { Heart, MessageCircle, Repeat2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { siteConfig } from '@/config/site.config';
+import { useNostrFeed } from '@/hooks/useNostrFeed';
+import { MessageButton } from '@/components/social/MessageButton';
 
 interface NostrFeedProps {
   domains?: string[];
   limit?: number;
+  mode: 'community' | 'general' | 'hybrid';
+  showDebugInfo?: boolean;
 }
 
-function PostCard({ event }: { event: NostrEvent }) {
+
+function PostCard({ event, showSource = false, domains = [] }: { 
+  event: NostrEvent; 
+  showSource?: boolean;
+  domains?: string[];
+}) {
   const author = useAuthor(event.pubkey);
   const metadata = author.data?.metadata;
   const displayName = metadata?.name ?? genUserName(event.pubkey);
   const profileImage = metadata?.picture;
+  
+  
+  // Check if this is a verified community member
+  const isVerifiedCommunityMember = metadata?.nip05 && typeof metadata.nip05 === 'string' && domains.some(domain => 
+    metadata.nip05?.toLowerCase().endsWith(`@${domain.toLowerCase()}`)
+  );
+  
 
   return (
     <Card className="border-caribbean-sand hover:border-caribbean-ocean/30 transition-all">
@@ -38,6 +73,11 @@ function PostCard({ event }: { event: NostrEvent }) {
               <span className="font-semibold text-sm truncate">{displayName}</span>
               {metadata?.nip05 && (
                 <span className="text-xs text-caribbean-ocean">✓</span>
+              )}
+              {showSource && isVerifiedCommunityMember && (
+                <Badge variant="secondary" className="text-xs bg-caribbean-ocean/10 text-caribbean-ocean">
+                  Community
+                </Badge>
               )}
             </div>
             <span className="text-xs text-muted-foreground">
@@ -67,6 +107,14 @@ function PostCard({ event }: { event: NostrEvent }) {
             <Zap className="h-4 w-4 sm:mr-1" />
             <span className="text-xs hidden sm:inline">Zap</span>
           </Button>
+          <MessageButton 
+            recipientPubkey={event.pubkey}
+            recipientName={displayName}
+            variant="ghost" 
+            size="sm" 
+            className="h-8 px-1 sm:px-2 text-muted-foreground hover:text-caribbean-ocean"
+            showText={false}
+          />
         </div>
       </CardContent>
     </Card>
@@ -95,49 +143,19 @@ function LoadingSkeleton() {
   );
 }
 
-export function NostrFeed({ domains = siteConfig.nostr.communityDomains, limit = 50 }: NostrFeedProps) {
-  const { nostr } = useNostr();
-
-  const { data: posts, isLoading } = useQuery({
-    queryKey: ['nostr-feed', domains, limit],
-    queryFn: async (c) => {
-      const signal = AbortSignal.any([c.signal, AbortSignal.timeout(5000)]);
-      
-      // First, find users with the specified nip05 domains
-      const profiles = await nostr.query([{ kinds: [0] }], { signal });
-      
-      // Filter profiles with matching nip05 domains
-      const validPubkeys = profiles
-        .filter(event => {
-          try {
-            const metadata = JSON.parse(event.content);
-            if (!metadata.nip05) return false;
-            const domain = metadata.nip05.split('@').pop();
-            return domains.includes(domain || '');
-          } catch {
-            return false;
-          }
-        })
-        .map(event => event.pubkey);
-
-      if (validPubkeys.length === 0) {
-        return [];
-      }
-
-      // Query posts from these users
-      const posts = await nostr.query([
-        {
-          kinds: [1],
-          authors: validPubkeys,
-          limit: limit,
-        }
-      ], { signal });
-
-      // Sort by created_at descending
-      return posts.sort((a, b) => b.created_at - a.created_at);
-    },
-    refetchInterval: 30000, // Refresh every 30 seconds
+export function NostrFeed({ 
+  domains = siteConfig.nostr.communityDomains, 
+  limit = 50, 
+  mode,
+  showDebugInfo = false 
+}: NostrFeedProps) {
+  
+  const { data: feedData, isLoading, posts, debugInfo } = useNostrFeed({
+    mode,
+    domains,
+    limit
   });
+
 
   if (isLoading) {
     return (
@@ -149,25 +167,65 @@ export function NostrFeed({ domains = siteConfig.nostr.communityDomains, limit =
     );
   }
 
-  if (!posts || posts.length === 0) {
+  // Posts and debugInfo are directly from the hook now
+
+  if (posts.length === 0) {
     return (
-      <Card className="border-dashed border-caribbean-sand">
-        <CardContent className="py-8 text-center">
-          <p className="text-muted-foreground text-sm">
-            No posts found from the community yet.
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            Showing posts from @{domains.join(', @')}
-          </p>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <Card className="border-dashed border-caribbean-sand">
+          <CardContent className="py-8 text-center">
+            <p className="text-muted-foreground text-sm">
+              No posts found yet.
+            </p>
+            {mode === 'community' && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Showing posts from @{domains.join(', @')}
+              </p>
+            )}
+            {showDebugInfo && debugInfo && (
+              <div className="mt-4 p-3 bg-muted rounded-lg text-xs text-left">
+                <p><strong>Debug Info:</strong></p>
+                <p>Mode: {debugInfo.mode}</p>
+                <p>Relay Connected: {debugInfo.relayConnected ? '✅' : '❌'}</p>
+                <p>Total profiles: {debugInfo.totalProfiles}</p>
+                <p>Valid community pubkeys: {debugInfo.validCommunityPubkeys}</p>
+                <p>Community posts: {debugInfo.communityPostsFound}</p>
+                <p>General posts: {debugInfo.generalPostsFound}</p>
+                <p>Domains: {debugInfo.domains.join(', ')}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
     <div className="space-y-4">
+      {showDebugInfo && debugInfo && (
+        <Card className="border-caribbean-sand">
+          <CardContent className="py-3">
+            <div className="text-xs text-muted-foreground">
+              <p><strong>Feed Status:</strong></p>
+              <p>Mode: {debugInfo.mode} | Posts: {posts.length}</p>
+              <p>Community: {debugInfo.communityPostsFound} | General: {debugInfo.generalPostsFound}</p>
+              {feedData?.hasCommunityPosts && (
+                <p className="text-caribbean-ocean">✓ Community posts available</p>
+              )}
+              {feedData?.hasGeneralPosts && !feedData?.hasCommunityPosts && (
+                <p className="text-caribbean-mango">⚡ Showing general posts</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
       {posts.map((post) => (
-        <PostCard key={post.id} event={post} />
+        <PostCard 
+          key={post.id} 
+          event={post} 
+          showSource={mode === 'hybrid'} 
+          domains={domains}
+        />
       ))}
     </div>
   );

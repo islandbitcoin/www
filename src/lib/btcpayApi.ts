@@ -39,9 +39,6 @@ export class BTCPayApiClient {
 
   async createPullPayment(request: CreatePullPaymentRequest): Promise<PullPaymentResponse> {
     const url = `${this.baseUrl}/api/v1/stores/${this.storeId}/pull-payments`;
-    console.log('🔗 BTCPay API: Creating pull payment at:', url);
-    console.log('🔗 BTCPay API: Request body:', request);
-    
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -53,15 +50,11 @@ export class BTCPayApiClient {
       });
 
       const responseText = await response.text();
-      console.log('🔗 BTCPay API: Response status:', response.status);
-      console.log('🔗 BTCPay API: Response text:', responseText);
-
       if (!response.ok) {
         throw new Error(`Failed to create pull payment: ${response.status} ${response.statusText} - ${responseText}`);
       }
 
       const data = JSON.parse(responseText);
-      console.log('🔗 BTCPay API: Pull payment created:', data);
       return data;
     } catch (error) {
       console.error('🔗 BTCPay API: Error creating pull payment:', error);

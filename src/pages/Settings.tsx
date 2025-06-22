@@ -1,19 +1,19 @@
-import { useSeoMeta } from '@unhead/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, User, Palette, Bell, Zap, ArrowLeft, Users } from 'lucide-react';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { LoginArea } from '@/components/auth/LoginArea';
-import { PrivacySettings, EditProfileForm, ReferralPanel } from '@/components/lazy';
-import { LazyWrapper, loadingSkeletons } from '@/components/LazyWrapper';
-import { siteConfig } from '@/config/site.config';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { useSeoMeta } from "@unhead/react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Shield, User, Palette, Bell, Zap, ArrowLeft, Users } from "lucide-react";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { LoginArea } from "@/components/auth/LoginArea";
+import { PrivacySettings, EditProfileForm, ReferralPanel } from "@/components/lazy";
+import { LazyWrapper, loadingSkeletons } from "@/components/LazyWrapper";
+import { siteConfig } from "@/config/site.config";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export default function Settings() {
   useSeoMeta({
     title: `Settings - ${siteConfig.name}`,
-    description: 'Manage your account settings and preferences',
+    description: "Manage your account settings and preferences",
   });
 
   const { user } = useCurrentUser();
@@ -25,16 +25,12 @@ export default function Settings() {
           <Card className="max-w-md mx-auto border-caribbean-sand">
             <CardHeader>
               <CardTitle>Settings</CardTitle>
-              <CardDescription>
-                Sign in to manage your settings
-              </CardDescription>
+              <CardDescription>Sign in to manage your settings</CardDescription>
             </CardHeader>
             <CardContent className="py-8">
               <div className="text-center space-y-4">
                 <User className="h-12 w-12 mx-auto text-caribbean-ocean/50" />
-                <p className="text-muted-foreground">
-                  Please sign in to access your settings
-                </p>
+                <p className="text-muted-foreground">Please sign in to access your settings</p>
                 <LoginArea className="max-w-60 mx-auto" />
               </div>
             </CardContent>
@@ -54,7 +50,11 @@ export default function Settings() {
               <span className="text-2xl font-bold bg-gradient-to-r from-caribbean-sunset to-caribbean-mango bg-clip-text text-transparent">
                 {siteConfig.name}
               </span>
-              <Zap className="w-5 h-5 text-caribbean-mango" />
+              <img
+                src="https://raw.githubusercontent.com/islandbitcoin/islandbitcoin-community/4cfeb962c33fff5e6f5561c37ddca3c469c25793/gallery/Island%20Bitcoin%20Logo.jpg"
+                alt="Island Bitcoin Logo"
+                className="h-8 w-8 rounded-full"
+              />
             </Link>
             <Link to="/">
               <Button variant="outline" size="sm" className="border-caribbean-ocean text-caribbean-ocean hover:bg-caribbean-ocean/10">
@@ -69,9 +69,7 @@ export default function Settings() {
       <div className="container mx-auto px-4 max-w-4xl py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your account and preferences
-          </p>
+          <p className="text-muted-foreground mt-2">Manage your account and preferences</p>
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
@@ -119,14 +117,10 @@ export default function Settings() {
                   <Bell className="h-5 w-5" />
                   Preferences
                 </CardTitle>
-                <CardDescription>
-                  Customize your Island Bitcoin experience
-                </CardDescription>
+                <CardDescription>Customize your Island Bitcoin experience</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Additional preference settings coming soon...
-                </p>
+                <p className="text-sm text-muted-foreground">Additional preference settings coming soon...</p>
               </CardContent>
             </Card>
           </TabsContent>

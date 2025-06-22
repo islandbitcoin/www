@@ -56,7 +56,6 @@ class ConfigSyncService {
       this.isOnline = response.ok;
       return this.isOnline;
     } catch {
-      console.warn('Sync server offline, using local storage only');
       this.isOnline = false;
       return false;
     }
@@ -67,7 +66,6 @@ class ConfigSyncService {
     // Check cache first
     const cached = cacheManager.get<SyncConfig>(CACHE_KEYS.CONFIG);
     if (cached) {
-      console.log('📦 Config loaded from cache');
       return cached;
     }
 
@@ -92,8 +90,7 @@ class ConfigSyncService {
       if (result.success && result.data) {
         // Cache the config
         cacheManager.set(CACHE_KEYS.CONFIG, result.data, CONFIG_CACHE_TTL);
-        console.log('💾 Config cached');
-      }
+        }
       return result.success ? result.data : null;
     } catch (error) {
       console.error('Failed to get config from sync server:', error);
@@ -130,8 +127,7 @@ class ConfigSyncService {
       if (result.success) {
         // Invalidate cache on successful save
         cacheManager.remove(CACHE_KEYS.CONFIG);
-        console.log('🗑️ Config cache invalidated');
-      }
+        }
       return result.success;
     } catch (error) {
       console.error('Failed to save config to sync server:', error);
@@ -165,8 +161,7 @@ class ConfigSyncService {
       if (result.success) {
         // Invalidate cache on successful save
         cacheManager.remove(CACHE_KEYS.CONFIG);
-        console.log('🗑️ Config cache invalidated');
-      }
+        }
       return result.success;
     } catch (error) {
       console.error('Failed to save full config to sync server:', error);
@@ -198,8 +193,7 @@ class ConfigSyncService {
       if (result.success) {
         // Invalidate cache on successful save
         cacheManager.remove(CACHE_KEYS.CONFIG);
-        console.log('🗑️ Config cache invalidated');
-      }
+        }
       return result.success;
     } catch (error) {
       console.error('Failed to remove config from sync server:', error);

@@ -6,10 +6,19 @@ import { LoginArea } from '@/components/auth/LoginArea';
 import { useAnonymousPlay } from '@/hooks/useAnonymousPlay';
 import { WithdrawDialog } from '@/components/financial/WithdrawDialog';
 import { useState } from 'react';
+import { useGameWallet } from '@/hooks/useGameWallet';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 export function AnonymousSatsBalance() {
   const { balance, isAnonymous, canWithdraw, getDisplayName } = useAnonymousPlay();
+  const { config, userBalance } = useGameWallet();
+  const { user: nostrUser } = useCurrentUser();
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
+  
+  const minWithdrawal = config.minWithdrawal || 100;
+  
+  // Use the game wallet balance for logged-in users
+  const displayBalance = nostrUser && userBalance ? userBalance.balance : balance;
 
   return (
     <>
@@ -26,21 +35,21 @@ export function AnonymousSatsBalance() {
         <CardContent className="space-y-4">
           <div className="text-center">
             <div className="text-4xl font-bold text-caribbean-ocean">
-              {balance.toLocaleString()}
+              {displayBalance.toLocaleString()}
             </div>
             <div className="text-sm text-muted-foreground">sats earned</div>
           </div>
 
-          {isAnonymous && balance > 0 && (
+          {isAnonymous && displayBalance > 0 && (
             <Alert className="border-amber-200 bg-amber-50">
               <LogIn className="h-4 w-4 text-amber-600" />
               <AlertDescription className="text-sm">
-                Login with Nostr to withdraw your {balance} sats!
+                Login with Nostr to withdraw your {displayBalance} sats!
               </AlertDescription>
             </Alert>
           )}
 
-          {canWithdraw && balance >= 100 ? (
+          {canWithdraw && displayBalance >= minWithdrawal ? (
             <Button 
               onClick={() => setShowWithdrawDialog(true)}
               className="w-full bg-caribbean-sunset hover:bg-caribbean-sunset/90"
@@ -53,7 +62,7 @@ export function AnonymousSatsBalance() {
           ) : (
             <Button disabled className="w-full">
               <Coins className="h-4 w-4 mr-2" />
-              {balance < 100 ? `Min withdrawal: 100 sats` : 'Withdraw Sats'}
+              {displayBalance < minWithdrawal ? `Min withdrawal: ${minWithdrawal} sats` : 'Withdraw Sats'}
             </Button>
           )}
 

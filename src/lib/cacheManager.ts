@@ -126,7 +126,7 @@ class CacheManager {
       });
       
       if (removed > 0) {
-        console.log(`🧹 Cleaned up ${removed} expired cache entries`);
+        // Cache entries cleaned up successfully
       }
     } catch (error) {
       console.error('Cache cleanup error:', error);

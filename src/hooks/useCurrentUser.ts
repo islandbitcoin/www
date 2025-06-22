@@ -29,8 +29,8 @@ export function useCurrentUser() {
       try {
         const user = loginToUser(login);
         users.push(user);
-      } catch (error) {
-        console.warn('Skipped invalid login', login.id, error);
+      } catch {
+        // Skip invalid logins
       }
     }
 

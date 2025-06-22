@@ -1,0 +1,282 @@
+{
+  "_comment": "Trezor Academy Workshop - Hardware Wallet Security Training",
+  "_version": "1.0.0",
+  
+  "event": {
+    "id": "trezor-academy-ocho-rios-2024",
+    "status": "draft",
+    
+    "basic_info": {
+      "title": "Trezor Academy Workshop",
+      "subtitle": "Master Bitcoin Security with Hardware Wallets",
+      "description": "Take control of your Bitcoin security with this comprehensive hands-on workshop from Trezor Academy. Learn everything you need to know about securing your Bitcoin with hardware wallets, from basic setup to advanced features.\n\n🔐 What You'll Learn:\n- Why hardware wallets are essential for Bitcoin security\n- Complete Trezor setup walkthrough\n- Creating and backing up your seed phrase safely\n- Understanding derivation paths and account management\n- Using passphrases for additional security\n- Multi-signature setup basics\n- Recovering from a lost or damaged device\n- Best practices for long-term Bitcoin storage\n- Common security mistakes and how to avoid them\n\n🎯 Workshop Features:\n- Small group size for personalized attention\n- Hands-on practice with demo devices\n- Take-home security checklist\n- Q&A with certified Trezor educator\n- Special discount on Trezor devices for attendees\n- Certificate of completion\n\nThis workshop is perfect for anyone who owns Bitcoin or is planning to invest seriously. No technical background required - we'll guide you through everything step by step.",
+      "summary": "Learn to secure your Bitcoin with Trezor hardware wallets in this hands-on workshop for all experience levels",
+      "type": "workshop",
+      "categories": ["bitcoin", "education", "security", "technical"],
+      "tags": ["hardware-wallet", "security", "hands-on", "beginner-friendly", "trezor", "self-custody"],
+      "language": ["en"],
+      "accessibility": {
+        "wheelchair_accessible": true,
+        "sign_language": false,
+        "live_captions": false,
+        "other_accommodations": ["One-on-one assistance available", "Materials in large print on request"]
+      }
+    },
+    
+    "datetime": {
+      "start": "TBD",
+      "end": "TBD",
+      "timezone": "America/Jamaica",
+      "recurring": {
+        "enabled": false
+      },
+      "schedule": [
+        {
+          "time": "09:00",
+          "duration": "30min",
+          "title": "Registration & Welcome Coffee",
+          "description": "Check-in, receive materials, network"
+        },
+        {
+          "time": "09:30",
+          "duration": "45min",
+          "title": "Why Hardware Wallets Matter",
+          "description": "Understanding Bitcoin security threats and solutions"
+        },
+        {
+          "time": "10:15",
+          "duration": "15min",
+          "title": "Break",
+          "description": "Coffee and refreshments"
+        },
+        {
+          "time": "10:30",
+          "duration": "90min",
+          "title": "Hands-On Setup Session",
+          "description": "Step-by-step Trezor setup with instructor guidance"
+        },
+        {
+          "time": "12:00",
+          "duration": "60min",
+          "title": "Lunch Break",
+          "description": "Catered lunch with Bitcoin payment option"
+        },
+        {
+          "time": "13:00",
+          "duration": "60min",
+          "title": "Advanced Security Features",
+          "description": "Passphrases, multi-sig, and hidden wallets"
+        },
+        {
+          "time": "14:00",
+          "duration": "45min",
+          "title": "Recovery and Best Practices",
+          "description": "Backup strategies and recovery procedures"
+        },
+        {
+          "time": "14:45",
+          "duration": "15min",
+          "title": "Break",
+          "description": "Final break before Q&A"
+        },
+        {
+          "time": "15:00",
+          "duration": "45min",
+          "title": "Q&A and Troubleshooting",
+          "description": "Get your specific questions answered"
+        },
+        {
+          "time": "15:45",
+          "duration": "15min",
+          "title": "Closing & Certificates",
+          "description": "Receive completion certificate and special offers"
+        }
+      ]
+    },
+    
+    "location": {
+      "type": "physical",
+      "name": "Ocho Rios Tech Hub",
+      "address": {
+        "street": "TBD",
+        "city": "Ocho Rios",
+        "state_province": "St. Ann",
+        "country": "Jamaica",
+        "coordinates": {
+          "latitude": 18.4075,
+          "longitude": -77.1034
+        }
+      },
+      "directions": "Venue details to be announced",
+      "parking": "Free parking available",
+      "public_transit": "Details TBD"
+    },
+    
+    "registration": {
+      "required": true,
+      "url": "https://trezor.islandbitcoin.com",
+      "email": "workshops@islandbitcoin.com",
+      "deadline": "TBD",
+      "capacity": {
+        "max": 20,
+        "current": 0,
+        "waitlist": true
+      },
+      "fee": {
+        "amount": 50,
+        "currency": "USD",
+        "bitcoin_accepted": true,
+        "lightning_accepted": true,
+        "on_chain_address": "TBD",
+        "lightning_address": "workshops@islandbitcoin.com",
+        "early_bird": {
+          "amount": 35,
+          "deadline": "TBD"
+        }
+      },
+      "requirements": {
+        "age_minimum": 16,
+        "prerequisites": ["Basic Bitcoin knowledge helpful but not required"],
+        "bring_items": [
+          "Laptop (recommended)",
+          "Smartphone",
+          "Notebook and pen",
+          "Your own Trezor (if you have one)"
+        ],
+        "preparation": "Download Trezor Suite software before attending: https://trezor.io/suite"
+      }
+    },
+    
+    "organizer": {
+      "name": "Island Bitcoin Education",
+      "email": "education@islandbitcoin.com",
+      "phone": "+1-876-555-0333",
+      "website": "https://islandbitcoin.com/education",
+      "nostr": {
+        "npub": "npub1education123456",
+        "nip05": "education@islandbitcoin.com"
+      }
+    },
+    
+    "speakers": [
+      {
+        "name": "Certified Trezor Educator",
+        "title": "Hardware Wallet Security Expert",
+        "bio": "Official Trezor Academy instructor with 5+ years of Bitcoin security education experience",
+        "photo": "trezor-instructor.jpg",
+        "topics": ["Hardware wallet security", "Bitcoin self-custody", "Best practices"]
+      }
+    ],
+    
+    "sponsors": [
+      {
+        "name": "Trezor",
+        "tier": "gold",
+        "logo": "trezor-logo.png",
+        "website": "https://trezor.io",
+        "description": "The original hardware wallet"
+      },
+      {
+        "name": "Island Bitcoin",
+        "tier": "silver",
+        "logo": "island-bitcoin-logo.png",
+        "description": "Your Caribbean Bitcoin community"
+      }
+    ],
+    
+    "media": {
+      "featured_image": "trezor-workshop-banner.jpg",
+      "thumbnail": "trezor-workshop-thumb.jpg",
+      "gallery": [
+        "workshop-setup.jpg",
+        "hands-on-practice.jpg",
+        "trezor-devices.jpg"
+      ]
+    },
+    
+    "agenda": {
+      "topics": [
+        "Hardware wallet fundamentals",
+        "Seed phrase security",
+        "Device setup and initialization",
+        "Passphrase implementation",
+        "Multi-signature basics",
+        "Recovery procedures",
+        "Long-term storage strategies"
+      ],
+      "format": "workshop",
+      "materials": {
+        "handouts": [
+          "trezor-setup-guide.pdf",
+          "security-checklist.pdf",
+          "recovery-worksheet.pdf"
+        ]
+      }
+    },
+    
+    "catering": {
+      "provided": true,
+      "type": "meal",
+      "dietary_options": ["vegetarian", "vegan"],
+      "bitcoin_merchants": [
+        {
+          "name": "Local Bitcoin Cafe",
+          "accepts_lightning": true
+        }
+      ]
+    },
+    
+    "extras": {
+      "giveaways": [
+        "Security steel backup plates",
+        "Trezor stickers",
+        "Security guide booklet"
+      ],
+      "activities": [
+        "Hands-on device setup",
+        "Recovery simulation",
+        "Security quiz"
+      ]
+    },
+    
+    "target_audience": {
+      "experience_level": ["beginner", "intermediate"],
+      "interests": ["investors", "general", "security-focused"],
+      "age_groups": ["18-25", "26-35", "36-50", "50+"]
+    },
+    
+    "promotion": {
+      "hashtags": ["#TrezorAcademy", "#BitcoinSecurity", "#IslandBitcoin", "#SelfCustody"],
+      "marketing_materials": {
+        "flyer": "trezor-workshop-flyer.pdf"
+      }
+    },
+    
+    "metrics": {
+      "expected_attendance": 20,
+      "success_metrics": [
+        "Participants completing full setup",
+        "Security checklist completion rate",
+        "Post-workshop survey scores",
+        "Trezor devices purchased"
+      ],
+      "follow_up": {
+        "survey_url": "https://forms.islandbitcoin.com/trezor-feedback"
+      }
+    },
+    
+    "legal": {
+      "photo_video_consent": true,
+      "liability_waiver": true
+    },
+    
+    "metadata": {
+      "created_at": "2024-03-01T12:00:00Z",
+      "updated_at": "2024-03-15T14:30:00Z",
+      "submitted_by": "education@islandbitcoin.com",
+      "approved": false,
+      "internal_notes": "Awaiting date confirmation from Trezor Academy",
+      "version": 1
+    }
+  }
+}

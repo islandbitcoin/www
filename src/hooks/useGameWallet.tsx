@@ -1,18 +1,14 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
 import { gameWalletManager, GameWalletConfig, UserBalance } from '@/lib/gameWallet';
-import { getNWCClient } from '@/lib/nwc';
 
 export function useGameWallet() {
-  const { nostr } = useNostr();
   const { user } = useCurrentUser();
   const { toast } = useToast();
   const [config, setConfig] = useState<GameWalletConfig>(gameWalletManager.getConfig());
   const [userBalance, setUserBalance] = useState<UserBalance | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [isLoading] = useState(false);
   const [balanceRefreshKey, setBalanceRefreshKey] = useState(0);
   
   // Refresh config and sync from server periodically
@@ -85,107 +81,6 @@ export function useGameWallet() {
 
   // Check if user is admin
   const isAdmin = user ? gameWalletManager.isAdmin(user.pubkey) : false;
-
-  // Connect wallet (admin only)
-  const connectWallet = useCallback(async (nwcUri: string) => {
-    if (!isAdmin) {
-      toast({
-        title: 'Unauthorized',
-        description: 'Only admins can connect the game wallet',
-        variant: 'destructive' });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const nwcClient = getNWCClient(nostr);
-      console.log('Connecting to NWC wallet with URI:', nwcUri.substring(0, 50) + '...');
-      
-      const info = await nwcClient.connect(nwcUri);
-      console.log('Connected successfully, wallet info:', info);
-      
-      // Save connection first
-      gameWalletManager.saveConfig({
-        nwcUri,
-        isConnected: true
-      });
-      
-      // Try to check balance, but don't fail if it errors
-      try {
-        const balance = await nwcClient.getBalance();
-        console.log('Wallet balance:', balance);
-        
-        gameWalletManager.saveConfig({
-          walletBalance: balance.balance,
-          lastBalanceCheck: new Date().toISOString()
-        });
-        
-        setWalletBalance(balance.balance);
-      } catch (balanceError) {
-        console.warn('Could not fetch wallet balance:', balanceError);
-        // Continue anyway - balance check is not critical for connection
-      }
-      
-      setConfig(gameWalletManager.getConfig());
-      
-      toast({
-        title: 'Wallet connected!',
-        description: `Connected to wallet successfully` });
-    } catch (error) {
-      console.error('NWC connection error:', error);
-      toast({
-        title: 'Connection failed',
-        description: error instanceof Error ? error.message : 'Failed to connect wallet',
-        variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isAdmin, nostr, toast]);
-
-  // Disconnect wallet (admin only)
-  const disconnectWallet = useCallback(() => {
-    if (!isAdmin) return;
-    
-    const nwcClient = getNWCClient(nostr);
-    nwcClient.disconnect();
-    
-    gameWalletManager.saveConfig({
-      nwcUri: undefined,
-      isConnected: false,
-      walletBalance: undefined,
-      lastBalanceCheck: undefined });
-    
-    setConfig(gameWalletManager.getConfig());
-    setWalletBalance(null);
-    
-    toast({
-      title: 'Wallet disconnected',
-      description: 'Game wallet has been disconnected' });
-  }, [isAdmin, nostr, toast]);
-
-  // Check wallet balance
-  const checkWalletBalance = useCallback(async () => {
-    if (!config.isConnected) return;
-    
-    setIsLoading(true);
-    try {
-      const nwcClient = getNWCClient(nostr);
-      if (config.nwcUri) {
-        await nwcClient.connect(config.nwcUri);
-      }
-      
-      const balance = await nwcClient.getBalance();
-      setWalletBalance(balance.balance);
-      
-      gameWalletManager.saveConfig({
-        walletBalance: balance.balance,
-        lastBalanceCheck: new Date().toISOString() });
-    } catch (error) {
-      console.error('Failed to check balance:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [config, nostr]);
 
   // Award sats to user
   const awardSats = useCallback(async (
@@ -305,7 +200,7 @@ export function useGameWallet() {
     setUserBalance(gameWalletManager.getUserBalance(user.pubkey));
     
     return false;
-  }, [user, config, nostr, toast, refreshBalance]);
+  }, [user, config, toast, refreshBalance]);
 
   // Update config (admin only)
   const updateConfig = useCallback(async (updates: Partial<GameWalletConfig>) => {
@@ -321,12 +216,6 @@ export function useGameWallet() {
     return gameWalletManager.getPayouts(filters);
   }, [isAdmin]);
 
-  // Note: Withdrawals are now handled through pull payments, not NWC
-  const processPendingWithdrawals = useCallback(async () => {
-    toast({
-      title: 'Pull payments in use',
-      description: 'Withdrawals are handled instantly via pull payments' });
-  }, [toast]);
 
   // Reset a failed withdrawal and restore balance (admin only)
   const resetWithdrawal = useCallback((payoutId: string) => {
@@ -357,20 +246,15 @@ export function useGameWallet() {
     // State
     config,
     userBalance,
-    walletBalance,
     isLoading,
     isAdmin,
     
     // Actions
-    connectWallet,
-    disconnectWallet,
-    checkWalletBalance,
     awardSats,
     withdrawSats,
     updateConfig,
     getPayouts,
     refreshBalance,
-    processPendingWithdrawals,
     resetWithdrawal,
     getResetableWithdrawals,
     

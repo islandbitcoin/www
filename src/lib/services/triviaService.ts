@@ -12,8 +12,13 @@ import { getFallbackQuestions, getFallbackMetadata } from './triviaFallback';
 export interface GitHubQuestion {
   id: string;
   question: string;
-  options: string[];
-  correct_answer: 'A' | 'B' | 'C' | 'D';
+  options: {
+    a: string;
+    b: string;
+    c: string;
+    d: string;
+  };
+  correct_answer: 'a' | 'b' | 'c' | 'd';
   difficulty: number; // 1-10 scale
   level: number; // 1-21 progression
   category: string;
@@ -36,16 +41,24 @@ export interface TriviaMetadata {
 }
 
 // Convert letter answer to index
-const letterToIndex = (letter: 'A' | 'B' | 'C' | 'D'): number => {
-  return letter.charCodeAt(0) - 'A'.charCodeAt(0);
+const letterToIndex = (letter: 'a' | 'b' | 'c' | 'd'): number => {
+  return letter.charCodeAt(0) - 'a'.charCodeAt(0);
 };
 
 // Convert old format to new format for backward compatibility
 export const convertToLegacyFormat = (question: GitHubQuestion) => {
+  // Convert options object to array
+  const optionsArray = [
+    question.options.a,
+    question.options.b,
+    question.options.c,
+    question.options.d
+  ];
+  
   return {
     id: question.id,
     question: question.question,
-    options: question.options,
+    options: optionsArray,
     correctAnswer: letterToIndex(question.correct_answer),
     explanation: question.explanation,
     difficulty: question.difficulty <= 3 ? 'easy' : question.difficulty <= 6 ? 'medium' : 'hard',
@@ -114,7 +127,15 @@ export class TriviaService {
       }
 
       const data = await response.json();
-      const questions: GitHubQuestion[] = data.questions || data;
+      // Handle different possible data structures
+      let questions: GitHubQuestion[] = [];
+      if (Array.isArray(data)) {
+        questions = data;
+      } else if (data.questions && Array.isArray(data.questions)) {
+        questions = data.questions;
+      } else if (data.data && Array.isArray(data.data)) {
+        questions = data.data;
+      }
       
       // Cache the results
       this.cacheQuestions(questions, response.headers.get('etag') || undefined);
@@ -139,7 +160,6 @@ export class TriviaService {
       }
       
       // If no cache, use fallback questions
-      console.log('Using fallback questions');
       const fallbackQuestions = getFallbackQuestions(level);
       
       // Cache the fallback for future use

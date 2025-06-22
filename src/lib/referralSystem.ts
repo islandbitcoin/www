@@ -26,8 +26,18 @@ export interface UserReferralStats {
 class ReferralSystem {
   private readonly REFERRAL_KEY = 'referral-data';
   private readonly USER_STATS_KEY = 'referral-stats';
-  private readonly REFERRAL_REWARD = 100; // sats for successful referral
-  private readonly REFERRED_BONUS = 25; // bonus sats for new users who use referral
+  
+  // Get referral rewards from config
+  private getReferralReward(): number {
+    const config = gameWalletManager.getConfig();
+    return config.gameRewards?.referralBonus || 100;
+  }
+  
+  private getReferredBonus(): number {
+    const config = gameWalletManager.getConfig();
+    // Use 25% of referral bonus as signup bonus
+    return Math.floor((config.gameRewards?.referralBonus || 100) * 0.25);
+  }
 
   /**
    * Generate a referral code from a pubkey
@@ -91,14 +101,14 @@ class ReferralSystem {
       if (gameWalletManager) {
         const payout = gameWalletManager.recordPayout({
           userPubkey: referredPubkey,
-          amount: this.REFERRED_BONUS,
+          amount: this.getReferredBonus(),
           gameType: 'referral'
         });
 
         const balance = gameWalletManager.getUserBalance(referredPubkey);
         gameWalletManager.updateUserBalance(referredPubkey, {
-          balance: balance.balance + this.REFERRED_BONUS,
-          totalEarned: balance.totalEarned + this.REFERRED_BONUS
+          balance: balance.balance + this.getReferredBonus(),
+          totalEarned: balance.totalEarned + this.getReferredBonus()
         });
 
         gameWalletManager.updatePayoutStatus(payout.id, 'paid');
@@ -131,20 +141,20 @@ class ReferralSystem {
     if (payouts.length > 0) {
       // Mark referral as successful and award referrer
       referral.rewardClaimed = true;
-      referral.rewardAmount = this.REFERRAL_REWARD;
+      referral.rewardAmount = this.getReferralReward();
       secureStorage.set(this.REFERRAL_KEY, referrals);
 
       // Award referrer
       const referrerBalance = gameWalletManager.getUserBalance(referral.referrerId);
       const payout = gameWalletManager.recordPayout({
         userPubkey: referral.referrerId,
-        amount: this.REFERRAL_REWARD,
+        amount: this.getReferralReward(),
         gameType: 'referral'
       });
 
       gameWalletManager.updateUserBalance(referral.referrerId, {
-        balance: referrerBalance.balance + this.REFERRAL_REWARD,
-        totalEarned: referrerBalance.totalEarned + this.REFERRAL_REWARD
+        balance: referrerBalance.balance + this.getReferralReward(),
+        totalEarned: referrerBalance.totalEarned + this.getReferralReward()
       });
 
       gameWalletManager.updatePayoutStatus(payout.id, 'paid');
@@ -153,7 +163,7 @@ class ReferralSystem {
       const referrerStats = this.getUserStats(referral.referrerId);
       this.updateUserStats(referral.referrerId, {
         successfulReferrals: referrerStats.successfulReferrals + 1,
-        totalRewardsEarned: referrerStats.totalRewardsEarned + this.REFERRAL_REWARD
+        totalRewardsEarned: referrerStats.totalRewardsEarned + this.getReferralReward()
       });
     }
   }

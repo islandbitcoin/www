@@ -56,8 +56,8 @@ export const MediaGallery = memo(function MediaGallery({ items, className }: Med
           text: item.description,
           url: item.url,
         });
-      } catch (err) {
-        console.log('Error sharing:', err);
+      } catch {
+        // Ignore share errors - user may have cancelled
       }
     } else {
       // Fallback: copy to clipboard
@@ -84,12 +84,32 @@ export const MediaGallery = memo(function MediaGallery({ items, className }: Med
             onClick={() => openLightbox(index)}
           >
             <div className="relative aspect-square">
-              <OptimizedImage
-                src={item.thumbnail || item.url}
-                alt={item.title}
-                className="w-full h-full"
-                onLoad={() => handleImageLoad(item.id)}
-              />
+              {item.type === 'video' ? (
+                <>
+                  <video
+                    src={item.url}
+                    className="w-full h-full object-cover"
+                    muted
+                    playsInline
+                    onLoadedData={() => handleImageLoad(item.id)}
+                  />
+                  {/* Video indicator */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="bg-black/50 rounded-full p-3">
+                      <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <OptimizedImage
+                  src={item.thumbnail || item.url}
+                  alt={item.title}
+                  className="w-full h-full"
+                  onLoad={() => handleImageLoad(item.id)}
+                />
+              )}
               
               {/* Overlay on hover */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
@@ -150,14 +170,23 @@ export const MediaGallery = memo(function MediaGallery({ items, className }: Med
                 <ChevronRight className="h-6 w-6" />
               </Button>
 
-              {/* Image */}
+              {/* Media content */}
               <div className="relative max-w-full max-h-[80vh]">
-                <OptimizedImage
-                  src={items[selectedIndex].url}
-                  alt={items[selectedIndex].title}
-                  className="max-w-full max-h-[80vh] object-contain"
-                  priority
-                />
+                {items[selectedIndex].type === 'video' ? (
+                  <video
+                    src={items[selectedIndex].url}
+                    className="max-w-full max-h-[80vh] object-contain"
+                    controls
+                    autoPlay
+                  />
+                ) : (
+                  <OptimizedImage
+                    src={items[selectedIndex].url}
+                    alt={items[selectedIndex].title}
+                    className="max-w-full max-h-[80vh] object-contain"
+                    priority
+                  />
+                )}
               </div>
 
               {/* Info bar */}

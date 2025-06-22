@@ -17,7 +17,6 @@ export function useServiceWorker() {
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) {
-      console.log('Service Workers not supported');
       return;
     }
 

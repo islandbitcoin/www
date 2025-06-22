@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageCircle, Lock, Send, Timer, Trash2, ArrowLeft } from 'lucide-react';
+import { MessageCircle, Lock, Send, Timer, Trash2, ArrowLeft, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,6 +16,7 @@ import { useAuthor } from '@/hooks/useAuthor';
 import { genUserName } from '@/lib/genUserName';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { NewMessageDialog } from './NewMessageDialog';
 
 interface ConversationListProps {
   onSelectConversation: (pubkey: string) => void;
@@ -24,20 +25,36 @@ interface ConversationListProps {
 
 function ConversationList({ onSelectConversation, selectedPubkey }: ConversationListProps) {
   const { conversations, totalUnread } = useEncryptedDMs();
+  const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
 
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 border-b border-caribbean-sand">
-        <h3 className="font-semibold flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
-          Messages
-          {totalUnread > 0 && (
-            <Badge variant="destructive" className="ml-auto">
-              {totalUnread}
-            </Badge>
-          )}
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold flex items-center gap-2">
+            <MessageCircle className="h-5 w-5" />
+            Messages
+            {totalUnread > 0 && (
+              <Badge variant="destructive">
+                {totalUnread}
+              </Badge>
+            )}
+          </h3>
+          <Button 
+            size="sm" 
+            variant="ghost"
+            onClick={() => setIsNewMessageOpen(true)}
+            className="h-8 w-8 p-0"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
+      
+      <NewMessageDialog 
+        isOpen={isNewMessageOpen}
+        onClose={() => setIsNewMessageOpen(false)}
+      />
       
       <ScrollArea className="flex-1">
         {conversations.length === 0 ? (

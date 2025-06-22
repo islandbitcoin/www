@@ -3,7 +3,6 @@
  * Combines all wallet services into a single interface
  */
 
-import { NWCClient } from "../nwc";
 import { ConfigService } from "./configService";
 import { BalanceService } from "./balanceService";
 import { PayoutService } from "./payoutService";
@@ -17,7 +16,6 @@ class GameWalletManager {
   private balanceService: BalanceService;
   private payoutService: PayoutService;
   private adminService: AdminService;
-  private nwcClient: NWCClient | null = null;
 
   constructor() {
     this.configService = new ConfigService();

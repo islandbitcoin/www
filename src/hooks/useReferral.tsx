@@ -3,6 +3,7 @@ import { useCurrentUser } from './useCurrentUser';
 import { useToast } from './useToast';
 import { referralSystem, UserReferralStats } from '@/lib/referralSystem';
 import { useSearchParams } from 'react-router-dom';
+import { gameWalletManager } from '@/lib/gameWallet';
 
 export function useReferral() {
   const { user } = useCurrentUser();
@@ -38,9 +39,11 @@ export function useReferral() {
     const success = referralSystem.trackReferral(refCode, user.pubkey);
     
     if (success) {
+      const config = gameWalletManager.getConfig();
+      const signupBonus = Math.floor((config.gameRewards?.referralBonus || 100) * 0.25);
       toast({
         title: 'Welcome bonus!',
-        description: 'You earned 25 sats for using a referral link!'
+        description: `You earned ${signupBonus} sats for using a referral link!`
       });
     }
 

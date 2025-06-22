@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useCurrentUser } from './useCurrentUser';
 import { useGameWallet } from './useGameWallet';
 import { useToast } from './useToast';
@@ -25,6 +25,7 @@ export function useAnonymousPlay(): AnonymousGameSession {
   const { toast } = useToast();
   const [anonymousUser, setAnonymousUser] = useState<AnonymousUser | null>(null);
   const [balance, setBalance] = useState(0);
+  const hasTransferredBalance = useRef(false);
 
   useEffect(() => {
     // If no Nostr user is logged in, create/load anonymous user
@@ -35,12 +36,52 @@ export function useAnonymousPlay(): AnonymousGameSession {
       // Load balance from local storage for anonymous user
       const userBalance = gameWalletManager.getUserBalance(anonUser.id);
       setBalance(userBalance.balance);
+      
+      // Reset transfer flag when logged out
+      hasTransferredBalance.current = false;
     } else {
-      // Clear anonymous user when Nostr user logs in
+      // When user logs in, check for anonymous balance to transfer
+      if (!hasTransferredBalance.current) {
+        const anonUser = anonymousUserManager.getOrCreateUser();
+        const anonBalance = gameWalletManager.getUserBalance(anonUser.id);
+        
+        if (anonBalance.balance > 0) {
+          // Transfer anonymous balance to logged-in user
+          const nostrBalance = gameWalletManager.getUserBalance(nostrUser.pubkey);
+          
+          // Update the logged-in user's balance
+          gameWalletManager.updateUserBalance(nostrUser.pubkey, {
+            balance: nostrBalance.balance + anonBalance.balance,
+            totalEarned: nostrBalance.totalEarned + anonBalance.totalEarned
+          });
+          
+          // Clear the anonymous user's balance
+          gameWalletManager.updateUserBalance(anonUser.id, {
+            balance: 0,
+            totalEarned: 0
+          });
+          
+          // Show success message
+          toast({
+            title: `Welcome back!`,
+            description: `Your guest balance of ${anonBalance.balance} sats has been transferred to your account.`
+          });
+          
+          // Mark as transferred
+          hasTransferredBalance.current = true;
+          
+          // Trigger balance update event for all components
+          window.dispatchEvent(new CustomEvent('gameWalletBalanceUpdate', {
+            detail: { pubkey: nostrUser.pubkey, balance: gameWalletManager.getUserBalance(nostrUser.pubkey) }
+          }));
+        }
+      }
+      
+      // Clear anonymous user
       setAnonymousUser(null);
       setBalance(0);
     }
-  }, [nostrUser]);
+  }, [nostrUser, toast]);
 
   // Award sats for anonymous users (stored locally only)
   const awardSatsAnonymous = useCallback((amount: number, gameType: string): boolean => {

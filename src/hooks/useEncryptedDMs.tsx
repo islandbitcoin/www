@@ -32,15 +32,25 @@ export function useEncryptedDMs() {
   const [conversations, setConversations] = useState<Map<string, Conversation>>(new Map());
   const [isLoading, setIsLoading] = useState(false);
   const [decryptionCache] = useState<Map<string, string>>(new Map());
+  const [hasShownEncryptionWarning, setHasShownEncryptionWarning] = useState(false);
+
+  // Check if encryption is supported (NIP-44 or NIP-04)
+  const isNip44Supported = user?.signer.nip44 !== undefined;
+  const isNip04Supported = user?.signer.nip04 !== undefined;
+  const isEncryptionSupported = isNip44Supported || isNip04Supported;
 
   // Decrypt message content
   const decryptMessage = useCallback(async (event: NostrEvent): Promise<string | null> => {
-    if (!user?.signer.nip44) {
-      toast({
-        title: 'Encryption not supported',
-        description: 'Please upgrade your signer to support encrypted messages',
-        variant: 'destructive',
-      });
+    if (!isEncryptionSupported) {
+      // Only show the warning once
+      if (!hasShownEncryptionWarning) {
+        setHasShownEncryptionWarning(true);
+        toast({
+          title: 'Encryption not supported',
+          description: 'Your signer does not support encrypted messages. Upgrade to view DMs.',
+          variant: 'destructive',
+        });
+      }
       return null;
     }
 
@@ -51,18 +61,63 @@ export function useEncryptedDMs() {
     try {
       // Get the other party's pubkey
       const pTags = event.tags.filter(tag => tag[0] === 'p');
-      const otherPubkey = pTags.find(tag => tag[1] !== user.pubkey)?.[1];
+      let otherPubkey: string | undefined;
+      
+      if (event.pubkey === user.pubkey) {
+        // Sent message - recipient is in p tag
+        otherPubkey = pTags[0]?.[1];
+      } else {
+        // Received message - sender is the event pubkey
+        otherPubkey = event.pubkey;
+      }
       
       if (!otherPubkey) {
-        console.error('No recipient found in message');
+        console.error('No recipient/sender found in message', { 
+          event,
+          eventPubkey: event.pubkey,
+          userPubkey: user.pubkey,
+          pTags,
+          isSentMessage: event.pubkey === user.pubkey
+        });
         return null;
       }
 
-      // Decrypt the content
-      const decrypted = await user.signer.nip44.decrypt(
-        event.pubkey === user.pubkey ? otherPubkey : event.pubkey,
-        event.content
-      );
+      let decrypted: string;
+      
+      console.log(`Attempting to decrypt message ${event.id}`, {
+        otherPubkey,
+        contentPreview: event.content.substring(0, 50) + '...',
+        isNip44Supported,
+        isNip04Supported,
+      });
+      
+      // Try NIP-44 first (newer, more secure)
+      if (isNip44Supported) {
+        try {
+          decrypted = await user!.signer.nip44!.decrypt(otherPubkey, event.content);
+          console.log(`Successfully decrypted with NIP-44`);
+        } catch (nip44Error) {
+          // If NIP-44 fails and NIP-04 is available, try that
+          if (isNip04Supported) {
+            console.log('NIP-44 decryption failed, trying NIP-04', nip44Error);
+            try {
+              decrypted = await user!.signer.nip04!.decrypt(otherPubkey, event.content);
+              console.log(`Successfully decrypted with NIP-04`);
+            } catch (nip04Error) {
+              console.error('NIP-04 decryption also failed', nip04Error);
+              throw nip04Error;
+            }
+          } else {
+            throw nip44Error;
+          }
+        }
+      } else if (isNip04Supported) {
+        // Only NIP-04 is available
+        decrypted = await user!.signer.nip04!.decrypt(otherPubkey, event.content);
+        console.log(`Successfully decrypted with NIP-04 (only method available)`);
+      } else {
+        throw new Error('No decryption method available');
+      }
 
       // Cache the result
       decryptionCache.set(event.id, decrypted);
@@ -72,7 +127,7 @@ export function useEncryptedDMs() {
       console.error('Failed to decrypt message:', error);
       return null;
     }
-  }, [user, decryptionCache, toast]);
+  }, [user, decryptionCache, toast, isEncryptionSupported, hasShownEncryptionWarning, isNip44Supported, isNip04Supported]);
 
   // Process DM event
   const processDMEvent = useCallback(async (event: NostrEvent) => {
@@ -84,7 +139,15 @@ export function useEncryptedDMs() {
       ? pTags.find(tag => tag[1] !== user.pubkey)?.[1]
       : event.pubkey;
 
-    if (!otherPubkey) return;
+    if (!otherPubkey) {
+      console.error('processDMEvent: Could not determine otherPubkey', {
+        eventPubkey: event.pubkey,
+        userPubkey: user.pubkey,
+        pTags,
+        isSentMessage: event.pubkey === user.pubkey
+      });
+      return;
+    }
 
     // Decrypt the message
     const decryptedContent = await decryptMessage(event);
@@ -177,10 +240,10 @@ export function useEncryptedDMs() {
       expirationHours?: number;
     }
   ) => {
-    if (!user?.signer.nip44) {
+    if (!isEncryptionSupported) {
       toast({
         title: 'Cannot send encrypted message',
-        description: 'Your signer does not support encryption',
+        description: 'Your signer does not support encryption. Please upgrade your signer extension.',
         variant: 'destructive',
       });
       return null;
@@ -198,7 +261,17 @@ export function useEncryptedDMs() {
       }
 
       // Encrypt the content
-      const encrypted = await user.signer.nip44.encrypt(pubkey, content);
+      let encrypted: string;
+      
+      if (isNip44Supported) {
+        // Use NIP-44 (preferred)
+        encrypted = await user!.signer.nip44!.encrypt(pubkey, content);
+      } else if (isNip04Supported) {
+        // Fall back to NIP-04
+        encrypted = await user!.signer.nip04!.encrypt(pubkey, content);
+      } else {
+        throw new Error('No encryption method available');
+      }
 
       // Build tags
       const tags: string[][] = [['p', pubkey]];
@@ -239,7 +312,7 @@ export function useEncryptedDMs() {
       });
       return null;
     }
-  }, [user, nostr, processDMEvent, toast]);
+  }, [user, nostr, processDMEvent, toast, isEncryptionSupported, isNip44Supported, isNip04Supported]);
 
   // Mark conversation as read
   const markAsRead = useCallback((pubkey: string) => {

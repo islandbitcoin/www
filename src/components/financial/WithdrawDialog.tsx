@@ -39,11 +39,6 @@ export function WithdrawDialog({ open, onClose }: WithdrawDialogProps) {
   const handleWithdraw = async () => {
     if (!userBalance || !user) return;
 
-    console.log("💸 Starting withdrawal process...");
-    console.log("💸 Current balance:", userBalance.balance);
-    console.log("💸 Pull payment ready:", isPullPaymentReady);
-    console.log("💸 Config:", { pullPaymentId: config.pullPaymentId, serverUrl: config.btcPayServerUrl });
-
     // Check if pull payment is configured
     if (!isPullPaymentReady) {
       toast({
@@ -57,7 +52,6 @@ export function WithdrawDialog({ open, onClose }: WithdrawDialogProps) {
     setIsProcessing(true);
     try {
       // Generate withdrawal QR code using pull payment
-      console.log("💸 Generating QR code for amount:", userBalance.balance);
       const result = await generateWithdrawalQR(
         {
           pullPaymentId: config.pullPaymentId,
@@ -80,9 +74,7 @@ export function WithdrawDialog({ open, onClose }: WithdrawDialogProps) {
 
       // DON'T update balance yet - wait for user to actually scan the QR code
       // The balance will be updated when the pull payment is actually claimed
-      console.log("💸 QR code generated successfully, balance remains:", userBalance.balance);
-      console.log("💸 Pull payment ID:", result.pullPaymentId);
-    } catch (error) {
+      } catch (error) {
       toast({
         title: "Failed to generate withdrawal",
         description: error instanceof Error ? error.message : "Unknown error",

@@ -18,8 +18,7 @@ export function useLocalStorage<T>(
     try {
       const item = localStorage.getItem(key);
       return item ? deserialize(item) : defaultValue;
-    } catch (error) {
-      console.warn(`Failed to load ${key} from localStorage:`, error);
+    } catch {
       return defaultValue;
     }
   });
@@ -29,8 +28,8 @@ export function useLocalStorage<T>(
       const valueToStore = value instanceof Function ? value(state) : value;
       setState(valueToStore);
       localStorage.setItem(key, serialize(valueToStore));
-    } catch (error) {
-      console.warn(`Failed to save ${key} to localStorage:`, error);
+    } catch {
+      // Ignore localStorage errors
     }
   };
 
@@ -40,8 +39,8 @@ export function useLocalStorage<T>(
       if (e.key === key && e.newValue !== null) {
         try {
           setState(deserialize(e.newValue));
-        } catch (error) {
-          console.warn(`Failed to sync ${key} from localStorage:`, error);
+        } catch {
+          // Ignore deserialization errors
         }
       }
     };

@@ -19,36 +19,79 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
 
   // Use refs so the pool always has the latest data
   const relayUrl = useRef<string>(config.relayUrl);
+  const allRelays = useRef<Set<string>>(new Set());
 
   // Update refs when config changes
   useEffect(() => {
     relayUrl.current = config.relayUrl;
+    
+    // Build a set of relays to use for queries
+    const relays = new Set<string>([config.relayUrl]);
+    
+    // Add preset relays, up to 6 total for queries for better coverage
+    for (const { url } of (presetRelays ?? [])) {
+      if (relays.size >= 6) break;
+      relays.add(url);
+    }
+    
+    allRelays.current = relays;
+    console.log('🌐 NostrProvider: Using relays for queries:', Array.from(relays));
+    
     queryClient.resetQueries();
-  }, [config.relayUrl, queryClient]);
+  }, [config.relayUrl, presetRelays, queryClient]);
+
+  // Initialize allRelays if empty
+  if (allRelays.current.size === 0) {
+    const relays = new Set<string>([config.relayUrl]);
+    for (const { url } of (presetRelays ?? [])) {
+      if (relays.size >= 6) break;
+      relays.add(url);
+    }
+    allRelays.current = relays;
+  }
 
   // Initialize NPool only once
   if (!pool.current) {
     pool.current = new NPool({
       open(url: string) {
+        console.log(`🔌 Opening connection to relay: ${url}`);
         return new NRelay1(url);
       },
       reqRouter(filters) {
-        return new Map([[relayUrl.current, filters]]);
+        // Query from multiple relays for better coverage
+        const relayMap = new Map<string, typeof filters>();
+        
+        // Use all relays in our set
+        for (const relay of allRelays.current) {
+          relayMap.set(relay, filters);
+        }
+        
+        // If no relays are set yet, use at least the main relay
+        if (relayMap.size === 0) {
+          relayMap.set(relayUrl.current, filters);
+        }
+        
+        // Debug logging - commented out to reduce console noise
+        // console.log(`📡 Routing query to ${relayMap.size} relays:`, Array.from(relayMap.keys()));
+        
+        return relayMap;
       },
       eventRouter(_event: NostrEvent) {
-        // Publish to the selected relay
-        const allRelays = new Set<string>([relayUrl.current]);
+        // Publish to the selected relay and preset relays
+        const publishRelays = new Set<string>([relayUrl.current]);
 
         // Also publish to the preset relays, capped to 5
         for (const { url } of (presetRelays ?? [])) {
-          allRelays.add(url);
+          publishRelays.add(url);
 
-          if (allRelays.size >= 5) {
+          if (publishRelays.size >= 5) {
             break;
           }
         }
 
-        return [...allRelays];
+        console.log(`📤 Publishing to ${publishRelays.size} relays:`, Array.from(publishRelays));
+
+        return [...publishRelays];
       },
     });
   }
