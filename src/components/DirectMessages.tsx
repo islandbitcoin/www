@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { MessageCircle, Lock, Send, Timer, Trash2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,11 +10,7 @@ import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+  DialogTrigger } from '@/components/ui/dialog';
 import { useEncryptedDMs } from '@/hooks/useEncryptedDMs';
 import { useAuthor } from '@/hooks/useAuthor';
 import { genUserName } from '@/lib/genUserName';
@@ -145,8 +140,7 @@ function ChatView({ pubkey, onBack }: ChatViewProps) {
     setIsSending(true);
     await sendDM(pubkey, message.trim(), {
       ephemeral: isEphemeral,
-      expirationHours: 24,
-    });
+      expirationHours: 24 });
     setMessage('');
     setIsSending(false);
   };

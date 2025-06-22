@@ -382,22 +382,26 @@ export class AchievementManager {
     const unlocked: Achievement[] = [];
 
     switch (type) {
-      case 'quiz':
+      case 'quiz': {
         const quizAchievement = this.updateProgress('orange-pilled');
         if (quizAchievement) unlocked.push(quizAchievement);
         break;
-      case 'zap':
+      }
+      case 'zap': {
         const zapAchievement = this.updateProgress('lightning-fast');
         if (zapAchievement) unlocked.push(zapAchievement);
         break;
-      case 'game':
+      }
+      case 'game': {
         const gameAchievement = this.updateProgress('stack-sats');
         if (gameAchievement) unlocked.push(gameAchievement);
         break;
-      case 'trivia':
+      }
+      case 'trivia': {
         const triviaAchievement = this.updateProgress('bitcoin-scholar');
         if (triviaAchievement) unlocked.push(triviaAchievement);
         break;
+      }
     }
 
     return unlocked;

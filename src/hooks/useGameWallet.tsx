@@ -4,7 +4,6 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
 import { gameWalletManager, GameWalletConfig, UserBalance } from '@/lib/gameWallet';
 import { getNWCClient } from '@/lib/nwc';
-import { nip19 } from 'nostr-tools';
 
 export function useGameWallet() {
   const { nostr } = useNostr();
@@ -14,15 +13,66 @@ export function useGameWallet() {
   const [userBalance, setUserBalance] = useState<UserBalance | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [balanceRefreshKey, setBalanceRefreshKey] = useState(0);
+  
+  // Refresh config and sync from server periodically
+  useEffect(() => {
+    const refreshConfig = async () => {
+      // Try to load from sync server first
+      const loaded = await gameWalletManager.loadConfigFromServer();
+      if (loaded) {
+        // Server had updates, get the updated config
+        const latestConfig = gameWalletManager.getConfig();
+        setConfig(latestConfig);
+      } else {
+        // No updates from server, use local config
+        const latestConfig = gameWalletManager.getConfig();
+        setConfig(latestConfig);
+      }
+    };
+    
+    // Initial load
+    refreshConfig();
+    
+    // Check every 5 seconds for server updates
+    const interval = setInterval(refreshConfig, 5000);
+    
+    // Also listen for storage events (works within same browser)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'island-bitcoin-secure') {
+        refreshConfig();
+      }
+    };
+    
+    // Listen for custom config update events
+    const handleConfigUpdate = () => {
+      const latestConfig = gameWalletManager.getConfig();
+      setConfig(latestConfig);
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('gameWalletConfigUpdate', handleConfigUpdate);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('gameWalletConfigUpdate', handleConfigUpdate);
+    };
+  }, []);
 
-  // Load user balance when user changes
+  // Load user balance when user changes or refresh key changes
   useEffect(() => {
     if (user) {
       setUserBalance(gameWalletManager.getUserBalance(user.pubkey));
     } else {
       setUserBalance(null);
     }
-  }, [user]);
+  }, [user, balanceRefreshKey]);
+  
+  // Function to force refresh balance
+  const refreshBalance = useCallback(() => {
+    setBalanceRefreshKey(prev => prev + 1);
+  }, []);
 
   // Check if user is admin
   const isAdmin = user ? gameWalletManager.isAdmin(user.pubkey) : false;
@@ -33,39 +83,51 @@ export function useGameWallet() {
       toast({
         title: 'Unauthorized',
         description: 'Only admins can connect the game wallet',
-        variant: 'destructive',
-      });
+        variant: 'destructive' });
       return;
     }
 
     setIsLoading(true);
     try {
       const nwcClient = getNWCClient(nostr);
+      console.log('Connecting to NWC wallet with URI:', nwcUri.substring(0, 50) + '...');
+      
       const info = await nwcClient.connect(nwcUri);
+      console.log('Connected successfully, wallet info:', info);
       
-      // Check balance
-      const balance = await nwcClient.getBalance();
-      
+      // Save connection first
       gameWalletManager.saveConfig({
         nwcUri,
-        isConnected: true,
-        walletBalance: balance.balance,
-        lastBalanceCheck: new Date().toISOString(),
+        isConnected: true
       });
       
+      // Try to check balance, but don't fail if it errors
+      try {
+        const balance = await nwcClient.getBalance();
+        console.log('Wallet balance:', balance);
+        
+        gameWalletManager.saveConfig({
+          walletBalance: balance.balance,
+          lastBalanceCheck: new Date().toISOString()
+        });
+        
+        setWalletBalance(balance.balance);
+      } catch (balanceError) {
+        console.warn('Could not fetch wallet balance:', balanceError);
+        // Continue anyway - balance check is not critical for connection
+      }
+      
       setConfig(gameWalletManager.getConfig());
-      setWalletBalance(balance.balance);
       
       toast({
         title: 'Wallet connected!',
-        description: `Connected to wallet with ${info.methods.length} available methods`,
-      });
+        description: `Connected to wallet successfully` });
     } catch (error) {
+      console.error('NWC connection error:', error);
       toast({
         title: 'Connection failed',
         description: error instanceof Error ? error.message : 'Failed to connect wallet',
-        variant: 'destructive',
-      });
+        variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -82,16 +144,14 @@ export function useGameWallet() {
       nwcUri: undefined,
       isConnected: false,
       walletBalance: undefined,
-      lastBalanceCheck: undefined,
-    });
+      lastBalanceCheck: undefined });
     
     setConfig(gameWalletManager.getConfig());
     setWalletBalance(null);
     
     toast({
       title: 'Wallet disconnected',
-      description: 'Game wallet has been disconnected',
-    });
+      description: 'Game wallet has been disconnected' });
   }, [isAdmin, nostr, toast]);
 
   // Check wallet balance
@@ -110,8 +170,7 @@ export function useGameWallet() {
       
       gameWalletManager.saveConfig({
         walletBalance: balance.balance,
-        lastBalanceCheck: new Date().toISOString(),
-      });
+        lastBalanceCheck: new Date().toISOString() });
     } catch (error) {
       console.error('Failed to check balance:', error);
     } finally {
@@ -123,14 +182,13 @@ export function useGameWallet() {
   const awardSats = useCallback(async (
     amount: number,
     gameType: 'trivia' | 'stacker' | 'achievement' | 'referral',
-    gameData?: any
+    gameData?: Record<string, unknown>
   ): Promise<boolean> => {
     if (!user) {
       toast({
         title: 'Not logged in',
         description: 'Please sign in to earn sats',
-        variant: 'destructive',
-      });
+        variant: 'destructive' });
       return false;
     }
 
@@ -140,8 +198,7 @@ export function useGameWallet() {
       toast({
         title: 'Limit reached',
         description: canEarn.reason,
-        variant: 'destructive',
-      });
+        variant: 'destructive' });
       return false;
     }
 
@@ -150,139 +207,212 @@ export function useGameWallet() {
       userPubkey: user.pubkey,
       amount,
       gameType,
-      gameData,
-    });
+      gameData });
 
-    // Update user balance (add to pending)
+    // Update user balance directly to actual balance (not pending)
+    // Since this is just internal tracking, we don't need pending state
     const balance = gameWalletManager.getUserBalance(user.pubkey);
+    
     gameWalletManager.updateUserBalance(user.pubkey, {
-      pendingBalance: balance.pendingBalance + amount,
-      totalEarned: balance.totalEarned + amount,
-    });
+      balance: balance.balance + amount,
+      totalEarned: balance.totalEarned + amount });
     
     setUserBalance(gameWalletManager.getUserBalance(user.pubkey));
     
-    // Process payout if wallet is connected
-    if (config.isConnected && config.nwcUri) {
-      try {
-        // For now, just mark as paid - real implementation would create invoice
-        gameWalletManager.updatePayoutStatus(payout.id, 'paid', {
-          paymentProof: 'simulated_' + Date.now(),
-        });
-        
-        // Move from pending to actual balance
-        const updatedBalance = gameWalletManager.getUserBalance(user.pubkey);
-        gameWalletManager.updateUserBalance(user.pubkey, {
-          balance: updatedBalance.balance + amount,
-          pendingBalance: Math.max(0, updatedBalance.pendingBalance - amount),
-        });
-        
-        setUserBalance(gameWalletManager.getUserBalance(user.pubkey));
-        
-        toast({
-          title: `+${amount} sats!`,
-          description: 'Reward added to your balance',
-        });
-        
-        return true;
-      } catch (error) {
-        gameWalletManager.updatePayoutStatus(payout.id, 'failed', {
-          error: error instanceof Error ? error.message : 'Payment failed',
-        });
-        
-        toast({
-          title: 'Payment failed',
-          description: 'Your reward is pending and will be retried',
-          variant: 'destructive',
-        });
-        
-        return false;
-      }
-    } else {
-      // Wallet not connected - rewards stay pending
-      toast({
-        title: `+${amount} sats pending`,
-        description: 'Rewards will be paid when wallet is connected',
-      });
-      return true;
-    }
-  }, [user, config, toast]);
+    // Mark payout as paid since it's an internal balance update
+    gameWalletManager.updatePayoutStatus(payout.id, 'paid', {
+      paymentProof: `internal_${Date.now()}` });
+    
+    toast({
+      title: `+${amount} sats!`,
+      description: 'Reward added to your balance' });
+    
+    // Trigger balance refresh for all components
+    refreshBalance();
+    
+    return true;
+  }, [user, toast, refreshBalance]);
 
-  // Withdraw sats
-  const withdrawSats = useCallback(async (invoice: string): Promise<boolean> => {
+  // Withdraw sats to Lightning address or via LNURL/WebLN
+  const withdrawSats = useCallback(async (destination: string): Promise<boolean> => {
     if (!user) return false;
     
     const balance = gameWalletManager.getUserBalance(user.pubkey);
-    
-    // Parse invoice to get amount
-    // For now, we'll simulate - real implementation would decode the invoice
     const amount = balance.balance; // Withdraw full balance
     
     if (amount < config.minWithdrawal) {
       toast({
         title: 'Insufficient balance',
         description: `Minimum withdrawal is ${config.minWithdrawal} sats`,
-        variant: 'destructive',
-      });
+        variant: 'destructive' });
       return false;
     }
     
-    if (!config.isConnected || !config.nwcUri) {
-      toast({
-        title: 'Wallet not connected',
-        description: 'Game wallet is offline. Please contact admin.',
-        variant: 'destructive',
-      });
-      return false;
+    // Handle different withdrawal types
+    const withdrawalType = destination.startsWith('pullpayment:') ? 'pullpayment' : 'unknown';
+    
+    // Create a payout record
+    const gameData: Record<string, unknown> = { withdrawalType };
+    if (withdrawalType === 'pullpayment') {
+      gameData.pullPaymentId = destination.replace('pullpayment:', '');
     }
     
-    setIsLoading(true);
-    try {
-      const nwcClient = getNWCClient(nostr);
-      await nwcClient.connect(config.nwcUri);
-      
-      // Pay the invoice
-      const payment = await nwcClient.payInvoice(invoice);
-      
-      // Update balance
-      gameWalletManager.updateUserBalance(user.pubkey, {
-        balance: 0,
-        totalWithdrawn: balance.totalWithdrawn + amount,
-        lastWithdrawal: new Date().toISOString(),
-      });
-      
-      setUserBalance(gameWalletManager.getUserBalance(user.pubkey));
-      
+    const payout = gameWalletManager.recordPayout({
+      userPubkey: user.pubkey,
+      amount,
+      gameType: 'withdrawal' as const,
+      gameData
+    });
+    
+    // Update balance immediately (optimistic update)
+    gameWalletManager.updateUserBalance(user.pubkey, {
+      balance: 0,
+      totalWithdrawn: balance.totalWithdrawn + amount,
+      lastWithdrawal: new Date().toISOString() });
+    
+    setUserBalance(gameWalletManager.getUserBalance(user.pubkey));
+    
+    // Handle pull payment withdrawals (instant, no admin wallet needed)
+    if (withdrawalType === 'pullpayment') {
       toast({
-        title: 'Withdrawal successful!',
-        description: `${amount} sats sent to your wallet`,
+        title: '✅ Withdrawal QR code generated!',
+        description: 'Scan the QR code with your Lightning wallet to complete the withdrawal.' });
+      
+      // Mark as paid since pull payment handles it
+      gameWalletManager.updatePayoutStatus(payout.id, 'paid', {
+        paymentProof: `pullpayment_${gameData.pullPaymentId}`
       });
+      
+      // Trigger balance refresh for all components
+      refreshBalance();
       
       return true;
-    } catch (error) {
-      toast({
-        title: 'Withdrawal failed',
-        description: error instanceof Error ? error.message : 'Payment failed',
-        variant: 'destructive',
-      });
-      return false;
-    } finally {
-      setIsLoading(false);
     }
-  }, [user, config, nostr, toast]);
+    
+    // Unknown withdrawal type
+    toast({
+      title: 'Unsupported withdrawal type',
+      description: 'Please use the QR code withdrawal method.',
+      variant: 'destructive' });
+    
+    // Revert balance
+    gameWalletManager.updateUserBalance(user.pubkey, {
+      balance: amount,
+      totalWithdrawn: balance.totalWithdrawn,
+      lastWithdrawal: balance.lastWithdrawal });
+    
+    setUserBalance(gameWalletManager.getUserBalance(user.pubkey));
+    
+    return false;
+  }, [user, config, nostr, toast, refreshBalance]);
 
   // Update config (admin only)
-  const updateConfig = useCallback((updates: Partial<GameWalletConfig>) => {
+  const updateConfig = useCallback(async (updates: Partial<GameWalletConfig>) => {
     if (!isAdmin) return;
     
-    gameWalletManager.saveConfig(updates);
+    await gameWalletManager.saveConfig(updates);
     setConfig(gameWalletManager.getConfig());
+  }, [isAdmin]);
+
+  // Get payouts (admin only)
+  const getPayouts = useCallback((filters?: Parameters<typeof gameWalletManager.getPayouts>[0]) => {
+    if (!isAdmin) return [];
+    return gameWalletManager.getPayouts(filters);
+  }, [isAdmin]);
+
+  // Process pending withdrawals (admin only)
+  const processPendingWithdrawals = useCallback(async () => {
+    if (!isAdmin || !config.isConnected || !config.nwcUri) return;
+    
+    const pendingPayouts = gameWalletManager.getPayouts({ status: 'pending', gameType: 'withdrawal' });
+    if (pendingPayouts.length === 0) {
+      toast({
+        title: 'No pending withdrawals',
+        description: 'All withdrawals have been processed' });
+      return;
+    }
     
     toast({
-      title: 'Settings updated',
-      description: 'Game wallet configuration has been saved',
-    });
-  }, [isAdmin, toast]);
+      title: 'Processing withdrawals...',
+      description: `Found ${pendingPayouts.length} pending withdrawals` });
+    
+    const nwcClient = getNWCClient(nostr);
+    await nwcClient.connect(config.nwcUri);
+    
+    let processed = 0;
+    let failed = 0;
+    
+    for (const payout of pendingPayouts) {
+      try {
+        const lightningAddress = payout.gameData?.lightningAddress as string;
+        if (!lightningAddress) continue;
+        
+        // Convert Lightning address to LNURL
+        const [username, domain] = lightningAddress.split('@');
+        const lnurlUrl = `https://${domain}/.well-known/lnurlp/${username}`;
+        
+        const lnurlResponse = await fetch(lnurlUrl);
+        if (!lnurlResponse.ok) throw new Error('Invalid Lightning address');
+        
+        const lnurlData = await lnurlResponse.json();
+        
+        // Request invoice
+        const callbackUrl = new URL(lnurlData.callback);
+        callbackUrl.searchParams.set('amount', (payout.amount * 1000).toString());
+        
+        const invoiceResponse = await fetch(callbackUrl.toString());
+        if (!invoiceResponse.ok) throw new Error('Failed to generate invoice');
+        
+        const invoiceData = await invoiceResponse.json();
+        if (!invoiceData.pr) throw new Error('No invoice returned');
+        
+        // Pay the invoice
+        const paymentResult = await nwcClient.payInvoice(invoiceData.pr);
+        
+        // Update payout status
+        gameWalletManager.updatePayoutStatus(payout.id, 'paid', {
+          paymentProof: paymentResult.preimage,
+          lightningAddress
+        });
+        
+        processed++;
+      } catch (error) {
+        gameWalletManager.updatePayoutStatus(payout.id, 'failed', {
+          error: error instanceof Error ? error.message : 'Payment failed'
+        });
+        failed++;
+      }
+    }
+    
+    toast({
+      title: 'Withdrawals processed',
+      description: `Processed: ${processed}, Failed: ${failed}` });
+  }, [isAdmin, config, nostr, toast]);
+
+  // Reset a failed withdrawal and restore balance (admin only)
+  const resetWithdrawal = useCallback((payoutId: string) => {
+    if (!isAdmin) return false;
+    
+    const success = gameWalletManager.resetWithdrawal(payoutId);
+    if (success) {
+      toast({
+        title: 'Withdrawal reset',
+        description: 'Sats have been restored to user balance' });
+      refreshBalance();
+    } else {
+      toast({
+        title: 'Reset failed',
+        description: 'Could not reset this withdrawal',
+        variant: 'destructive' });
+    }
+    return success;
+  }, [isAdmin, toast, refreshBalance]);
+
+  // Get resetable withdrawals (admin only)
+  const getResetableWithdrawals = useCallback(() => {
+    if (!isAdmin) return [];
+    return gameWalletManager.getResetableWithdrawals();
+  }, [isAdmin]);
 
   return {
     // State
@@ -299,10 +429,14 @@ export function useGameWallet() {
     awardSats,
     withdrawSats,
     updateConfig,
+    getPayouts,
+    refreshBalance,
+    processPendingWithdrawals,
+    resetWithdrawal,
+    getResetableWithdrawals,
     
     // Helpers
     canUserEarnMore: user ? gameWalletManager.canUserEarnMore(user.pubkey) : { allowed: false },
     userDailyTotal: user ? gameWalletManager.getUserDailyTotal(user.pubkey) : 0,
-    totalDailyPayout: gameWalletManager.getTotalDailyPayout(),
-  };
+    totalDailyPayout: gameWalletManager.getTotalDailyPayout() };
 }

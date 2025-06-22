@@ -1,7 +1,6 @@
 import { Flame, Trophy, Target, Calendar, Gift } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useGameification } from '@/hooks/useGameification';
@@ -12,7 +11,7 @@ interface StreakDisplayProps {
 }
 
 export function StreakDisplay({ compact = false }: StreakDisplayProps) {
-  const { streak, level, stats, useRecoveryToken } = useGameification();
+  const { streak, level, stats } = useGameification();
 
   const getFlameColor = (days: number) => {
     if (days === 0) return 'text-gray-400';

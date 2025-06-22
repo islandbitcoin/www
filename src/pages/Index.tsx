@@ -1,14 +1,13 @@
 import { useSeoMeta } from "@unhead/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Image, Users, Zap, Menu, Settings as SettingsIcon, MessageSquare } from "lucide-react";
+import { Calendar, Image, Users, Zap, Menu, Settings as SettingsIcon } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LoginArea } from "@/components/auth/LoginArea";
 import { Link } from "react-router-dom";
 import { NostrFeed } from "@/components/NostrFeed";
 import { NostrPostBox } from "@/components/NostrPostBox";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { siteConfig } from "@/config/site.config";
 import { BitcoinPrice } from "@/components/BitcoinPrice";
 import { MediaGallery } from "@/components/MediaGallery";
@@ -22,8 +21,7 @@ import { ContactButton } from "@/components/ContactButton";
 const Index = () => {
   useSeoMeta({
     title: `${siteConfig.name} - ${siteConfig.community.location} Bitcoin Community`,
-    description: siteConfig.description,
-  });
+    description: siteConfig.description });
 
   const [isNostrFeedOpen, setIsNostrFeedOpen] = useState(false);
   const { user } = useCurrentUser();
@@ -250,8 +248,7 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
                 description: "Community gathering at sunset",
                 author: "Island Bitcoin",
                 date: "March 2024",
-                type: "image" as const,
-              },
+                type: "image" as const },
               {
                 id: "2",
                 url: "https://images.unsplash.com/photo-1519452575417-564c1401ecc0?w=800",
@@ -260,8 +257,7 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
                 description: "Learning to set up Lightning nodes",
                 author: "Community",
                 date: "March 2024",
-                type: "image" as const,
-              },
+                type: "image" as const },
               {
                 id: "3",
                 url: "https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?w=800",
@@ -270,8 +266,7 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
                 description: "Annual gathering of Bitcoin enthusiasts",
                 author: "Island Bitcoin",
                 date: "February 2024",
-                type: "image" as const,
-              },
+                type: "image" as const },
               {
                 id: "4",
                 url: "https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=800",
@@ -280,8 +275,7 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
                 description: "Making connections on island time",
                 author: "Community",
                 date: "February 2024",
-                type: "image" as const,
-              },
+                type: "image" as const },
               {
                 id: "5",
                 url: "https://images.unsplash.com/photo-1476304884326-cd2c88572c5f?w=800",
@@ -290,8 +284,7 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
                 description: "Evening discussions about Bitcoin",
                 author: "Island Bitcoin",
                 date: "January 2024",
-                type: "image" as const,
-              },
+                type: "image" as const },
               {
                 id: "6",
                 url: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800",
@@ -300,8 +293,7 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
                 description: "Bitcoin culture in paradise",
                 author: "Community",
                 date: "January 2024",
-                type: "image" as const,
-              },
+                type: "image" as const },
               {
                 id: "7",
                 url: "https://images.unsplash.com/photo-1533106418989-88406c7cc8ca?w=800",
@@ -310,8 +302,7 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
                 description: "Food, friends, and Bitcoin",
                 author: "Island Bitcoin",
                 date: "December 2023",
-                type: "image" as const,
-              },
+                type: "image" as const },
               {
                 id: "8",
                 url: "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800",
@@ -320,8 +311,7 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
                 description: "Where Bitcoin meets the beach",
                 author: "Community",
                 date: "December 2023",
-                type: "image" as const,
-              },
+                type: "image" as const },
             ]}
             className="max-w-6xl mx-auto"
           />

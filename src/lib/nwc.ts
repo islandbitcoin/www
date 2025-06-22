@@ -2,9 +2,15 @@
  * Nostr Wallet Connect (NIP-47) implementation for game rewards
  */
 
-import { nip04, nip19, getPublicKey } from 'nostr-tools';
-import { NostrEvent } from '@nostrify/nostrify';
+import { nip04, getPublicKey, getEventHash } from 'nostr-tools';
+import { schnorr } from '@noble/curves/secp256k1';
+import { bytesToHex } from '@noble/hashes/utils';
 import { secureStorage } from './secureStorage';
+
+interface NostrClient {
+  query: (filters: unknown[], options?: unknown) => Promise<unknown[]>;
+  event: (event: unknown, options?: unknown) => Promise<void>;
+}
 
 // NWC Event Kinds
 export const NWC_INFO_EVENT_KIND = 13194;
@@ -21,12 +27,12 @@ export interface NWCConnection {
 
 export interface NWCMethod {
   method: string;
-  params?: Record<string, any>;
+  params?: Record<string, unknown>;
 }
 
 export interface NWCResponse {
   result_type: string;
-  result?: any;
+  result?: unknown;
   error?: {
     code: string;
     message: string;
@@ -45,9 +51,9 @@ export class NWCClient {
   private connection: NWCConnection | null = null;
   private secretKey: Uint8Array | null = null;
   private pubkey: string | null = null;
-  private nostr: any = null;
+  private nostr: NostrClient | null = null;
   
-  constructor(nostr: any) {
+  constructor(nostr: NostrClient) {
     this.nostr = nostr;
   }
 
@@ -81,12 +87,17 @@ export class NWCClient {
       throw new Error('Invalid secret format');
     }
     
+    // Ensure relay URL has protocol
+    let finalRelayUrl = relayUrl;
+    if (!finalRelayUrl.startsWith('ws://') && !finalRelayUrl.startsWith('wss://')) {
+      finalRelayUrl = 'wss://' + finalRelayUrl;
+    }
+    
     return {
       walletPubkey,
-      relayUrl,
+      relayUrl: finalRelayUrl,
       secret,
-      lud16,
-    };
+      lud16: lud16 || undefined };
   }
 
   /**
@@ -97,20 +108,30 @@ export class NWCClient {
       this.connection = NWCClient.parseConnectionUri(uri);
       
       // Generate ephemeral key from secret
-      this.secretKey = new TextEncoder().encode(this.connection.secret).slice(0, 32);
+      // The secret is already a hex string, convert it to Uint8Array
+      this.secretKey = new Uint8Array(32);
+      for (let i = 0; i < 32; i++) {
+        this.secretKey[i] = parseInt(this.connection.secret.slice(i * 2, i * 2 + 2), 16);
+      }
       this.pubkey = getPublicKey(this.secretKey);
-      
-      // Get wallet info
-      const info = await this.getWalletInfo();
       
       // Store encrypted connection
       secureStorage.set('nwc-connection', {
         uri: uri,
         connectedAt: new Date().toISOString(),
-        walletPubkey: this.connection.walletPubkey,
-      });
+        walletPubkey: this.connection.walletPubkey });
       
-      return info;
+      // Try to get wallet info, but don't fail if it's not available
+      try {
+        const info = await this.getWalletInfo();
+        return info;
+      } catch {
+        // Many wallets don't publish info events, return a default response
+        return {
+          methods: ['pay_invoice', 'get_balance', 'make_invoice', 'list_transactions'],
+          notifications: []
+        };
+      }
     } catch (error) {
       this.disconnect();
       throw error;
@@ -143,29 +164,32 @@ export class NWCClient {
     }
 
     // Query for info event
-    const events = await this.nostr.query([
+    // Note: We need to ensure the relay URL is properly formatted
+    const relayUrl = this.connection.relayUrl.startsWith('wss://') 
+      ? this.connection.relayUrl 
+      : `wss://${this.connection.relayUrl}`;
+      
+    const events = await this.nostr!.query([
       {
         kinds: [NWC_INFO_EVENT_KIND],
         authors: [this.connection.walletPubkey],
-        limit: 1,
-      }
+        limit: 1 }
     ], { 
-      relay: this.connection.relayUrl,
-      signal: AbortSignal.timeout(5000),
-    });
+      relays: [relayUrl], // Use 'relays' array instead of 'relay'
+      signal: AbortSignal.timeout(5000) }) as Array<{content: string}>;
 
     if (events.length === 0) {
       throw new Error('Wallet info not found');
     }
 
     const infoEvent = events[0];
-    return JSON.parse(infoEvent.content);
+    return JSON.parse(infoEvent.content) as WalletInfo;
   }
 
   /**
    * Make a request to the wallet
    */
-  async request(method: string, params?: Record<string, any>): Promise<NWCResponse> {
+  async request(method: string, params?: Record<string, unknown>): Promise<NWCResponse> {
     if (!this.connection || !this.secretKey || !this.pubkey) {
       throw new Error('Wallet not connected');
     }
@@ -173,8 +197,7 @@ export class NWCClient {
     // Create request payload
     const payload = JSON.stringify({
       method,
-      params: params || {},
-    });
+      params: params || {} });
 
     // Encrypt payload
     const encrypted = await nip04.encrypt(
@@ -191,15 +214,20 @@ export class NWCClient {
         ['p', this.connection.walletPubkey],
       ],
       created_at: Math.floor(Date.now() / 1000),
-      pubkey: this.pubkey,
-    };
+      pubkey: this.pubkey };
 
-    // Sign and publish event
-    const signedEvent = await this.nostr.sign(event);
-    await this.nostr.publish(signedEvent, { relay: this.connection.relayUrl });
+    // Sign the event
+    const eventToSign = { ...event, id: '', sig: '' };
+    eventToSign.id = getEventHash(eventToSign);
+    eventToSign.sig = bytesToHex(schnorr.sign(eventToSign.id, this.secretKey));
+    
+    const relayUrl = this.connection.relayUrl.startsWith('wss://') 
+      ? this.connection.relayUrl 
+      : `wss://${this.connection.relayUrl}`;
+    await this.nostr!.event(eventToSign, { relays: [relayUrl] });
 
     // Wait for response
-    const response = await this.waitForResponse(signedEvent.id);
+    const response = await this.waitForResponse(eventToSign.id);
     return response;
   }
 
@@ -214,17 +242,19 @@ export class NWCClient {
     const startTime = Date.now();
     
     while (Date.now() - startTime < timeout) {
-      const events = await this.nostr.query([
+      const relayUrl = this.connection.relayUrl.startsWith('wss://') 
+        ? this.connection.relayUrl 
+        : `wss://${this.connection.relayUrl}`;
+        
+      const events = await this.nostr!.query([
         {
           kinds: [NWC_RESPONSE_KIND],
           authors: [this.connection.walletPubkey],
           '#e': [requestId],
-          limit: 1,
-        }
+          limit: 1 }
       ], {
-        relay: this.connection.relayUrl,
-        signal: AbortSignal.timeout(2000),
-      });
+        relays: [relayUrl],
+        signal: AbortSignal.timeout(2000) }) as Array<{content: string}>;
 
       if (events.length > 0) {
         const responseEvent = events[0];
@@ -236,7 +266,7 @@ export class NWCClient {
           responseEvent.content
         );
         
-        return JSON.parse(decrypted);
+        return JSON.parse(decrypted) as NWCResponse;
       }
 
       // Wait before retrying
@@ -255,14 +285,13 @@ export class NWCClient {
   }> {
     const response = await this.request('pay_invoice', {
       invoice,
-      ...(amount && { amount }),
-    });
+      ...(amount && { amount }) });
 
     if (response.error) {
       throw new Error(response.error.message);
     }
 
-    return response.result;
+    return response.result as { preimage: string; fees_paid: number };
   }
 
   /**
@@ -274,14 +303,13 @@ export class NWCClient {
   }> {
     const response = await this.request('make_invoice', {
       amount,
-      description,
-    });
+      description });
 
     if (response.error) {
       throw new Error(response.error.message);
     }
 
-    return response.result;
+    return response.result as { invoice: string; payment_hash: string };
   }
 
   /**
@@ -294,29 +322,28 @@ export class NWCClient {
       throw new Error(response.error.message);
     }
 
-    return response.result;
+    return response.result as { balance: number };
   }
 
   /**
    * List recent transactions
    */
-  async listTransactions(limit = 10): Promise<any[]> {
+  async listTransactions(limit = 10): Promise<unknown[]> {
     const response = await this.request('list_transactions', {
-      limit,
-    });
+      limit });
 
     if (response.error) {
       throw new Error(response.error.message);
     }
 
-    return response.result.transactions || [];
+    return (response.result as { transactions?: unknown[] })?.transactions || [];
   }
 }
 
 // Singleton instance manager
 let nwcInstance: NWCClient | null = null;
 
-export function getNWCClient(nostr: any): NWCClient {
+export function getNWCClient(nostr: NostrClient): NWCClient {
   if (!nwcInstance) {
     nwcInstance = new NWCClient(nostr);
   }

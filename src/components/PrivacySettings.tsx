@@ -2,7 +2,6 @@ import { Shield, Eye, EyeOff, Globe, Lock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { usePreferences } from '@/hooks/usePreferences';
@@ -11,7 +10,7 @@ import { useToast } from '@/hooks/useToast';
 
 export function PrivacySettings() {
   const { preferences, updatePreferences } = usePreferences();
-  const { isAvailable: torAvailable, isEnabled: torEnabled, toggle: toggleTor, relays: torRelays } = useTorRelay();
+  const { isAvailable: torAvailable, toggle: toggleTor, relays: torRelays } = useTorRelay();
   const { toast } = useToast();
 
   const handlePrivacyModeToggle = (enabled: boolean) => {
@@ -25,8 +24,7 @@ export function PrivacySettings() {
       title: enabled ? 'Privacy Mode Enabled' : 'Privacy Mode Disabled',
       description: enabled 
         ? 'Enhanced privacy protections are now active' 
-        : 'Standard privacy settings restored',
-    });
+        : 'Standard privacy settings restored' });
   };
 
   const handleTorToggle = (enabled: boolean) => {
@@ -34,8 +32,7 @@ export function PrivacySettings() {
       toast({
         title: 'Tor Not Available',
         description: 'Please use Tor Browser or configure a proxy to enable Tor relays',
-        variant: 'destructive',
-      });
+        variant: 'destructive' });
       return;
     }
 
@@ -48,8 +45,7 @@ export function PrivacySettings() {
       title: enabled ? 'Tor Relays Enabled' : 'Tor Relays Disabled',
       description: enabled 
         ? 'Connecting through .onion addresses when available' 
-        : 'Using standard relay connections',
-    });
+        : 'Using standard relay connections' });
   };
 
   return (

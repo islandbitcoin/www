@@ -1,5 +1,5 @@
 import { useSeoMeta } from '@unhead/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
@@ -23,8 +23,7 @@ import { siteConfig } from '@/config/site.config';
 export default function About() {
   useSeoMeta({
     title: `About - ${siteConfig.name}`,
-    description: `Learn about the ${siteConfig.name} community and our mission to bring Bitcoin education to the Caribbean`,
-  });
+    description: `Learn about the ${siteConfig.name} community and our mission to bring Bitcoin education to the Caribbean` });
 
   const features = [
     {

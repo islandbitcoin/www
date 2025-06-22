@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { streakManager } from '@/lib/streaks';
 import { achievementManager, Achievement } from '@/lib/achievements';
-import { Trophy, Flame, Star, Zap } from 'lucide-react';
+import type { NostrEvent } from '@nostrify/nostrify';
 
 export function useGameification() {
   const { toast } = useToast();
@@ -33,8 +33,7 @@ export function useGameification() {
       common: 'text-gray-600',
       rare: 'text-blue-600',
       epic: 'text-purple-600',
-      legendary: 'text-yellow-600',
-    };
+      legendary: 'text-yellow-600' };
 
     toast({
       title: 'Achievement Unlocked!',
@@ -50,40 +49,43 @@ export function useGameification() {
           </div>
         </div>
       ),
-      duration: 5000,
-    });
+      duration: 5000 });
   }, [toast]);
 
   // Check for new achievements after actions
-  const checkAchievements = useCallback((type: 'post' | 'streak' | 'social' | 'bitcoin' | 'trivia-correct' | 'stacker-milestone', data?: any) => {
+  const checkAchievements = useCallback((type: 'post' | 'streak' | 'social' | 'bitcoin' | 'trivia-correct' | 'stacker-milestone', data?: NostrEvent | Record<string, unknown>) => {
     let unlocked: Achievement[] = [];
 
     switch (type) {
       case 'post':
-        if (data) {
-          unlocked = achievementManager.checkPostAchievements(data);
+        if (data && 'id' in data && 'pubkey' in data && 'created_at' in data && 'kind' in data && 'tags' in data && 'content' in data && 'sig' in data) {
+          unlocked = achievementManager.checkPostAchievements(data as unknown as NostrEvent);
         }
         break;
       case 'streak':
         unlocked = achievementManager.checkStreakAchievements(streakData.currentStreak);
         break;
       case 'social':
-        unlocked = achievementManager.checkSocialAchievements(data);
+        if (data && typeof data === 'object' && 'type' in data && (data.type === 'interaction' || data.type === 'received')) {
+          unlocked = achievementManager.checkSocialAchievements(data.type as 'interaction' | 'received');
+        }
         break;
       case 'bitcoin':
-        unlocked = achievementManager.checkBitcoinAchievements(data);
+        if (data && typeof data === 'object' && 'type' in data && (data.type === 'quiz' || data.type === 'zap' || data.type === 'game' || data.type === 'trivia')) {
+          unlocked = achievementManager.checkBitcoinAchievements(data.type as 'quiz' | 'zap' | 'game' | 'trivia');
+        }
         break;
       case 'trivia-correct':
         // Check trivia achievements
-        if (data?.streak === 5) {
-          const triviaStreak = achievementManager.unlockAchievement('trivia-streak');
+        if (data && 'streak' in data && data.streak === 5) {
+          const triviaStreak = achievementManager.updateProgress('trivia-streak', 1);
           if (triviaStreak) unlocked.push(triviaStreak);
         }
         break;
       case 'stacker-milestone':
         // Check stacker achievements
-        if (data?.sats >= 1000000) {
-          const millionaire = achievementManager.unlockAchievement('satoshi-millionaire');
+        if (data && 'sats' in data && typeof data.sats === 'number' && data.sats >= 1000000) {
+          const millionaire = achievementManager.updateProgress('satoshi-millionaire', 1);
           if (millionaire) unlocked.push(millionaire);
         }
         break;
@@ -112,8 +114,7 @@ export function useGameification() {
               if (streakManager.useRecoveryToken()) {
                 toast({
                   title: 'Streak recovered!',
-                  description: 'Your streak has been saved. Don\'t forget to stay active today!',
-                });
+                  description: 'Your streak has been saved. Don\'t forget to stay active today!' });
                 refreshData();
               }
             }}
@@ -122,14 +123,12 @@ export function useGameification() {
             Use Token ({streakData.recoveryTokens} left)
           </button>
         ),
-        duration: 10000,
-      });
+        duration: 10000 });
     } else if (checkResult.streakBroken && !checkResult.canRecover) {
       toast({
         title: 'Streak broken',
         description: 'Your daily streak has been reset. Start a new one today!',
-        variant: 'destructive',
-      });
+        variant: 'destructive' });
     }
 
     // Check for early adopter achievement
@@ -151,8 +150,7 @@ export function useGameification() {
       toast({
         title: `${streakData.currentStreak} Day Streak! 🔥`,
         description: `Amazing dedication! You've been active for ${streakData.currentStreak} days straight!`,
-        duration: 7000,
-      });
+        duration: 7000 });
     }
   }, [streakData.currentStreak, toast]);
 
@@ -181,7 +179,5 @@ export function useGameification() {
       totalAchievements: achievements.length,
       unlockedCount: achievements.filter(a => a.unlockedAt).length,
       totalPoints: level.points,
-      completionPercentage: (achievements.filter(a => a.unlockedAt).length / achievements.length) * 100,
-    },
-  };
+      completionPercentage: (achievements.filter(a => a.unlockedAt).length / achievements.length) * 100 } };
 }

@@ -1,16 +1,42 @@
 import { Zap, Wallet, Send } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useGameWallet } from '@/hooks/useGameWallet';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { WithdrawDialog } from './WithdrawDialog';
+import type { UserBalance } from '@/lib/gameWallet';
 
 export function SatsBalance() {
   const { user } = useCurrentUser();
-  const { userBalance, config } = useGameWallet();
+  const { userBalance: walletBalance, config } = useGameWallet();
   const [showWithdraw, setShowWithdraw] = useState(false);
+  const [userBalance, setUserBalance] = useState(walletBalance);
+  
+  // Update local state when wallet balance changes
+  useEffect(() => {
+    if (walletBalance) {
+      setUserBalance(walletBalance);
+    }
+  }, [walletBalance]);
+  
+  // Listen for balance update events
+  useEffect(() => {
+    if (!user) return;
+    
+    const handleBalanceUpdate = (event: CustomEvent<{ pubkey: string; balance: UserBalance }>) => {
+      if (event.detail.pubkey === user.pubkey) {
+        setUserBalance(event.detail.balance);
+      }
+    };
+    
+    window.addEventListener('gameWalletBalanceUpdate', handleBalanceUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('gameWalletBalanceUpdate', handleBalanceUpdate as EventListener);
+    };
+  }, [user]);
   
   if (!user || !userBalance) {
     return null;
@@ -42,7 +68,12 @@ export function SatsBalance() {
                 {userBalance.balance.toLocaleString()}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground">sats</p>
+            <p className="text-sm text-muted-foreground">available sats</p>
+            {userBalance.pendingBalance > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                ({userBalance.pendingBalance} pending)
+              </p>
+            )}
           </div>
           
           <div className="grid grid-cols-2 gap-2 text-center text-sm">
