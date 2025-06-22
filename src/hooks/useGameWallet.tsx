@@ -17,9 +17,15 @@ export function useGameWallet() {
   
   // Refresh config and sync from server periodically
   useEffect(() => {
+    let mounted = true;
+    
     const refreshConfig = async () => {
       // Try to load from sync server first
       const loaded = await gameWalletManager.loadConfigFromServer();
+      
+      // Only update state if component is still mounted
+      if (!mounted) return;
+      
       if (loaded) {
         // Server had updates, get the updated config
         const latestConfig = gameWalletManager.getConfig();
@@ -39,21 +45,24 @@ export function useGameWallet() {
     
     // Also listen for storage events (works within same browser)
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'island-bitcoin-secure') {
+      if (e.key === 'island-bitcoin-secure' && mounted) {
         refreshConfig();
       }
     };
     
     // Listen for custom config update events
     const handleConfigUpdate = () => {
-      const latestConfig = gameWalletManager.getConfig();
-      setConfig(latestConfig);
+      if (mounted) {
+        const latestConfig = gameWalletManager.getConfig();
+        setConfig(latestConfig);
+      }
     };
     
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('gameWalletConfigUpdate', handleConfigUpdate);
     
     return () => {
+      mounted = false;
       clearInterval(interval);
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('gameWalletConfigUpdate', handleConfigUpdate);
