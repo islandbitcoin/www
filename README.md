@@ -34,12 +34,12 @@ A Bitcoin Lightning Community, Events and gaming platform built for the Caribbea
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ and npm
-- Git
+- Docker and Docker Compose
+- A domain name (for production)
 - A Nostr key pair (for login)
 - (Optional) BTCPay Server instance for pull payments
 
-### Installation
+### Local Development
 
 ```bash
 # Clone the repository
@@ -56,6 +56,17 @@ cp .env.example .env
 npm run dev
 ```
 
+### Production Deployment
+
+```bash
+# Create .env file with production settings
+cp .env.example .env
+nano .env
+
+# Deploy with Docker
+docker compose up -d --build
+```
+
 ### First-Time Setup
 
 1. Visit `http://localhost:5173`
@@ -69,8 +80,7 @@ npm run dev
 - [**Documentation Index**](./docs/INDEX.md) - Navigate all documentation
 - [**ROADMAP.md**](./docs/ROADMAP.md) - Development priorities and upcoming features
 - [**CLAUDE.md**](./docs/CLAUDE.md) - AI assistant instructions and project context
-- [**DEPLOYMENT.md**](./docs/DEPLOYMENT.md) - Production deployment guide
-- [**CDN_DEPLOYMENT.md**](./docs/CDN_DEPLOYMENT.md) - CDN and caching setup
+- [**DEPLOYMENT.md**](./docs/DEPLOYMENT.md) - DigitalOcean deployment guide
 
 ### Technical Documentation
 - [**Architecture Overview**](./docs/ARCHITECTURE.md) - System design and components
@@ -147,25 +157,32 @@ npm run test:coverage
 
 ## 🚢 Deployment
 
-### Production Build
-```bash
-# Build for production
-npm run build
+### Docker Deployment (Recommended)
 
-# Preview production build
-npm run preview
-```
+The project uses a unified architecture with a single Node.js server serving both frontend and API:
 
-### Docker Deployment
 ```bash
-# Build and run with Docker Compose
-docker-compose up -d
+# Deploy with Docker Compose
+docker compose up -d --build
 
 # View logs
-docker-compose logs -f
+docker compose logs -f app
+
+# Check health
+curl http://localhost:3000/api/health
 ```
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
+### DigitalOcean Deployment
+
+For production deployment on DigitalOcean VPS:
+
+1. Create a droplet (Ubuntu 22.04 LTS)
+2. Install Docker and Docker Compose
+3. Clone the repository
+4. Configure environment variables
+5. Run `docker compose up -d`
+
+See [DEPLOYMENT.md](./docs/DEPLOYMENT.md) for the complete DigitalOcean deployment guide.
 
 ## 🛡️ Security
 

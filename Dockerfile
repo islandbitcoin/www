@@ -1,31 +1,50 @@
-# Build stage
-FROM node:20-alpine AS builder
+# Unified Dockerfile - Frontend + API Server
+FROM node:20-alpine as builder
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY server/package*.json ./server/
 
 # Install dependencies
 RUN npm ci
+RUN cd server && npm ci
 
 # Copy source code
 COPY . .
 
-# Build the application
+# Build frontend
 RUN npm run build
 
-# Production stage - Nginx
-FROM nginx:alpine
+# Production stage
+FROM node:20-alpine
 
-# Copy built files from builder
-COPY --from=builder /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Copy built frontend
+COPY --from=builder /app/dist ./dist
+
+# Copy server
+COPY --from=builder /app/server ./server
+
+# Install only production dependencies
+WORKDIR /app/server
+RUN npm ci --only=production
+
+WORKDIR /app
+
+# Create logs directory
+RUN mkdir -p logs
 
 # Expose port
-EXPOSE 80
+EXPOSE 3000
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start unified server
+CMD ["node", "server/unified-server.js"]

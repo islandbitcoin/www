@@ -2,8 +2,9 @@
 
 import { cacheManager, CACHE_KEYS } from './cacheManager';
 
-const SYNC_SERVER_URL = import.meta.env.VITE_SYNC_SERVER_URL || 'http://localhost:3001';
-const API_KEY = import.meta.env.VITE_SYNC_API_KEY || '';
+// In production, this will be the same origin. In development, it's the Vite dev server
+const SYNC_SERVER_URL = import.meta.env.VITE_SYNC_SERVER_URL || '';
+const API_KEY = import.meta.env.VITE_SYNC_API_KEY || import.meta.env.VITE_API_SECRET || '';
 const CONFIG_CACHE_TTL = 60000; // 1 minute cache for config
 
 export interface SyncConfig {
@@ -49,7 +50,7 @@ class ConfigSyncService {
   // Check if sync server is available
   async checkServerHealth(): Promise<boolean> {
     try {
-      const response = await fetch(`${SYNC_SERVER_URL}/health`, {
+      const response = await fetch(`${SYNC_SERVER_URL}/api/health`, {
         method: 'GET',
         signal: AbortSignal.timeout(3000) // 3 second timeout
       });

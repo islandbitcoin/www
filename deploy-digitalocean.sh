@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Island Bitcoin - DigitalOcean Deployment Script
+# This script helps deploy updates to your DigitalOcean droplet
+
+set -e
+
+echo "🏝️ Island Bitcoin - DigitalOcean Deployment"
+echo "=========================================="
+
+# Check if .env exists
+if [ ! -f .env ]; then
+    echo "❌ Error: .env file not found!"
+    echo "Create one from .env.example and configure it."
+    exit 1
+fi
+
+# Load environment variables
+export $(grep -v '^#' .env | xargs)
+
+# Check required variables
+if [ -z "$DOMAIN" ]; then
+    echo "❌ Error: DOMAIN not set in .env file!"
+    exit 1
+fi
+
+echo "📦 Building application..."
+docker compose build --no-cache
+
+echo "🚀 Starting services..."
+docker compose down
+docker compose up -d
+
+echo "🧹 Cleaning up old images..."
+docker image prune -f
+
+echo "✅ Deployment complete!"
+echo ""
+echo "📊 Check status with:"
+echo "  docker compose ps"
+echo "  docker compose logs -f app"
+echo ""
+echo "🌐 Your site should be available at:"
+echo "  http://$DOMAIN (or https://$DOMAIN if SSL is configured)"
+echo ""
+echo "💡 Tips:"
+echo "  - Monitor logs: docker compose logs -f"
+echo "  - Check health: curl http://localhost:3000/api/health"
+echo "  - View stats: docker stats"

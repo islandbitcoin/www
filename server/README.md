@@ -1,58 +1,40 @@
-# Island Bitcoin Sync Server
+# Island Bitcoin Unified Server
 
-A minimal backend server to sync game configuration across browsers.
+This is the unified server that serves both the frontend static files and the configuration API for Island Bitcoin.
 
-## Quick Start
+## Overview
 
-1. **Install dependencies:**
-   ```bash
-   cd server
-   npm install
-   ```
-
-2. **Start the server:**
-   ```bash
-   npm start
-   ```
-
-3. **Server will run on:**
-   - Default: `http://localhost:3001`
-   - Health check: `http://localhost:3001/health`
+The unified server (`unified-server.js`) provides:
+- Static file serving for the React frontend
+- Configuration sync API for game wallet settings
+- Redis caching for improved performance
+- Health check endpoint for monitoring
 
 ## API Endpoints
 
-### GET `/api/config`
-Get current pull payment configuration
-```json
-{
-  "success": true,
-  "data": {
-    "pullPaymentId": "abc123...",
-    "btcPayServerUrl": "https://btcpay.example.com",
-    "lastUpdated": "2024-01-01T12:00:00.000Z"
-  }
-}
-```
+- `GET /api/health` - Health check endpoint
+- `GET /api/config` - Get game configuration (requires authentication)
+- `POST /api/config` - Update game configuration (requires authentication)
+- `DELETE /api/config` - Remove game configuration (requires authentication)
 
-### POST `/api/config`
-Update pull payment configuration
-```json
-{
-  "pullPaymentId": "abc123def456...",
-  "btcPayServerUrl": "https://your-btcpay-server.com"
-}
-```
+## Authentication
 
-### DELETE `/api/config`
-Remove pull payment configuration (sets values to null)
+API endpoints require the `x-api-key` header with the value matching the `API_SECRET` environment variable.
 
 ## Environment Variables
 
-- `PORT` - Server port (default: 3001)
+See the main `.env.example` file for required environment variables.
 
-## Production Notes
+## Running Locally
 
-- Currently uses in-memory storage
-- For production, replace with a real database (SQLite, PostgreSQL, etc.)
-- Add authentication/authorization as needed
-- Consider adding rate limiting
+```bash
+# Install dependencies
+npm install
+
+# Start server
+node unified-server.js
+```
+
+## Docker Deployment
+
+The server is automatically built and deployed as part of the main Docker Compose setup. See the main DEPLOYMENT.md for details.

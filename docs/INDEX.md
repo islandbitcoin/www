@@ -12,10 +12,9 @@ Welcome to the Island Bitcoin documentation! This guide will help you navigate t
 - [**ARCHITECTURE.md**](./ARCHITECTURE.md) - System design, component architecture, and technical details
 - [**CLAUDE.md**](./CLAUDE.md) - AI assistant context and development guidelines
 
-### Deployment & Operations
-- [**DEPLOYMENT.md**](./DEPLOYMENT.md) - Complete production deployment guide
-- [**CDN_DEPLOYMENT.md**](./CDN_DEPLOYMENT.md) - CDN setup and static asset optimization
-- [**DEPLOY.md**](./DEPLOY.md) - Quick deployment reference
+### Deployment
+- [**DEPLOYMENT.md**](./DEPLOYMENT.md) - DigitalOcean Droplet deployment guide with Docker
+- [**APP_PLATFORM_DEPLOYMENT.md**](./APP_PLATFORM_DEPLOYMENT.md) - DigitalOcean App Platform deployment (GitHub auto-deploy)
 
 ## 🏗️ Technical Documentation
 
@@ -55,7 +54,7 @@ Welcome to the Island Bitcoin documentation! This guide will help you navigate t
 ## 🔧 Technical Guides
 
 ### Configuration
-- Environment variables
+- Environment variables (see `.env.example`)
 - Game reward settings
 - Rate limiting configuration
 - Admin panel usage
@@ -69,8 +68,22 @@ Welcome to the Island Bitcoin documentation! This guide will help you navigate t
 ### Performance
 - Code splitting strategy
 - Lazy loading implementation
-- Caching mechanisms
+- Caching mechanisms with Redis
 - Bundle optimization
+
+## 🐳 Docker & Deployment
+
+### Unified Architecture
+- Single Node.js server for frontend and API
+- Redis caching layer
+- Optional Nginx for SSL termination
+- Optimized for DigitalOcean VPS deployment
+
+### Key Features
+- Health monitoring endpoints
+- Automated backup strategies
+- Resource optimization
+- SSL/TLS configuration guides
 
 ## 📚 Additional Resources
 
@@ -98,15 +111,13 @@ When adding new documentation:
 
 | Document | Last Updated | Status |
 |----------|--------------|--------|
-| README.md | March 2024 | ✅ Current |
-| INDEX.md | March 2024 | ✅ Current |
+| README.md | June 2024 | ✅ Current |
+| INDEX.md | June 2024 | ✅ Current |
 | ROADMAP.md | March 2024 | ✅ Current |
 | ARCHITECTURE.md | March 2024 | ✅ Current |
 | API.md | March 2024 | ✅ Current |
-| DEPLOYMENT.md | March 2024 | ✅ Current |
-| CDN_DEPLOYMENT.md | March 2024 | ✅ Current |
+| DEPLOYMENT.md | June 2024 | ✅ Current |
 | CLAUDE.md | March 2024 | ✅ Current |
-| DEPLOY.md | February 2024 | ✅ Current |
 
 ---
 
