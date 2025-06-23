@@ -21,6 +21,9 @@ const API_SECRET = process.env.API_SECRET || 'change-this-secret-in-production';
 const CONFIG_CACHE_KEY = 'island-bitcoin:config';
 const CONFIG_CACHE_TTL = 300; // 5 minutes
 
+// Trust proxy to get correct IPs when behind Nginx
+app.set('trust proxy', true);
+
 // Whitelisted IPs - can be set via environment variable
 const WHITELISTED_IPS = process.env.WHITELISTED_IPS ? 
   process.env.WHITELISTED_IPS.split(',').map(ip => ip.trim()) : 
@@ -28,11 +31,15 @@ const WHITELISTED_IPS = process.env.WHITELISTED_IPS ?
 
 // Helper function to get client IP
 const getClientIp = (req) => {
-  return req.headers['x-real-ip'] || 
+  // Try different headers in order of preference
+  const ip = req.headers['x-real-ip'] || 
          req.headers['x-forwarded-for']?.split(',')[0].trim() || 
          req.connection.remoteAddress ||
          req.socket.remoteAddress ||
          req.ip;
+  
+  // Remove IPv6 prefix if present
+  return ip?.replace(/^::ffff:/, '') || 'unknown';
 };
 
 // Skip rate limiting for whitelisted IPs
@@ -40,8 +47,16 @@ const skipIfWhitelisted = (req) => {
   const clientIp = getClientIp(req);
   const isWhitelisted = WHITELISTED_IPS.includes(clientIp);
   
+  // Debug logging for rate limit checks
+  if (process.env.NODE_ENV !== 'production' || process.env.DEBUG_RATE_LIMIT) {
+    console.log(`🔍 Rate limit check - IP: ${clientIp}, Path: ${req.path}, Whitelisted: ${isWhitelisted}`);
+    if (WHITELISTED_IPS.length > 0 && !isWhitelisted) {
+      console.log(`📋 Whitelisted IPs: ${WHITELISTED_IPS.join(', ')}`);
+    }
+  }
+  
   if (isWhitelisted) {
-    console.log(`📋 Whitelisted IP ${clientIp} - skipping rate limit`);
+    console.log(`✅ Whitelisted IP ${clientIp} - skipping rate limit`);
   }
   
   // Also skip static assets
@@ -166,12 +181,12 @@ let gameConfig = {
   lastUpdated: null
 };
 
-// Apply rate limiting to all routes
-app.use(generalLimiter);
-
 // Apply CORS only to API routes
 app.use('/api', cors(corsOptions));
 app.use('/api', bodyParser.json());
+
+// Apply rate limiting only to API routes
+app.use('/api', generalLimiter);
 
 // ====================
 // API Routes
@@ -180,6 +195,7 @@ app.use('/api', bodyParser.json());
 // Health check with Redis status
 app.get('/api/health', async (req, res) => {
   const redisConnected = cache.isConnected();
+  const clientIp = getClientIp(req);
   
   res.json({ 
     status: 'ok', 
@@ -187,7 +203,30 @@ app.get('/api/health', async (req, res) => {
     redis: {
       connected: redisConnected,
       status: redisConnected ? 'healthy' : 'disconnected'
-    }
+    },
+    clientIp: clientIp,
+    isWhitelisted: WHITELISTED_IPS.includes(clientIp)
+  });
+});
+
+// Debug endpoint to check your IP
+app.get('/api/check-ip', (req, res) => {
+  const clientIp = getClientIp(req);
+  const headers = {
+    'x-real-ip': req.headers['x-real-ip'],
+    'x-forwarded-for': req.headers['x-forwarded-for'],
+    'x-forwarded-proto': req.headers['x-forwarded-proto'],
+    'connection-remoteAddress': req.connection?.remoteAddress,
+    'socket-remoteAddress': req.socket?.remoteAddress,
+    'req-ip': req.ip
+  };
+  
+  res.json({
+    yourIp: clientIp,
+    isWhitelisted: WHITELISTED_IPS.includes(clientIp),
+    whitelistedIps: WHITELISTED_IPS,
+    headers: headers,
+    trustProxy: app.get('trust proxy')
   });
 });
 
