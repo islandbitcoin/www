@@ -21,6 +21,37 @@ const API_SECRET = process.env.API_SECRET || 'change-this-secret-in-production';
 const CONFIG_CACHE_KEY = 'island-bitcoin:config';
 const CONFIG_CACHE_TTL = 300; // 5 minutes
 
+// Whitelisted IPs - can be set via environment variable
+const WHITELISTED_IPS = process.env.WHITELISTED_IPS ? 
+  process.env.WHITELISTED_IPS.split(',').map(ip => ip.trim()) : 
+  [];
+
+// Helper function to get client IP
+const getClientIp = (req) => {
+  return req.headers['x-real-ip'] || 
+         req.headers['x-forwarded-for']?.split(',')[0].trim() || 
+         req.connection.remoteAddress ||
+         req.socket.remoteAddress ||
+         req.ip;
+};
+
+// Skip rate limiting for whitelisted IPs
+const skipIfWhitelisted = (req) => {
+  const clientIp = getClientIp(req);
+  const isWhitelisted = WHITELISTED_IPS.includes(clientIp);
+  
+  if (isWhitelisted) {
+    console.log(`📋 Whitelisted IP ${clientIp} - skipping rate limit`);
+  }
+  
+  // Also skip static assets
+  const isStaticAsset = req.path.startsWith('/assets/') || 
+                       req.path.endsWith('.js') || 
+                       req.path.endsWith('.css');
+  
+  return isWhitelisted || isStaticAsset;
+};
+
 // Rate limiting configurations
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -28,7 +59,8 @@ const generalLimiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => req.path.startsWith('/assets/') || req.path.endsWith('.js') || req.path.endsWith('.css')
+  skip: skipIfWhitelisted,
+  keyGenerator: getClientIp
 });
 
 const configLimiter = rateLimit({
@@ -37,6 +69,8 @@ const configLimiter = rateLimit({
   message: 'Too many config updates, please slow down.',
   standardHeaders: true,
   legacyHeaders: false,
+  skip: skipIfWhitelisted,
+  keyGenerator: getClientIp,
 });
 
 // CORS configuration for API endpoints only
@@ -177,7 +211,7 @@ app.get('/api/config', authenticateAPI, async (req, res) => {
     }
 
     // Log request without sensitive data
-    console.log('📤 Config requested from:', req.ip);
+    console.log('📤 Config requested from:', getClientIp(req));
 
     res.json({
       success: true,
@@ -341,6 +375,10 @@ app.listen(PORT, () => {
   console.log(`🚀 Island Bitcoin Unified Server running on port ${PORT}`);
   console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
   console.log(`⚙️  Config API: http://localhost:${PORT}/api/config`);
+  
+  if (WHITELISTED_IPS.length > 0) {
+    console.log(`📋 Whitelisted IPs: ${WHITELISTED_IPS.join(', ')}`);
+  }
   
   if (fs.existsSync(distPath)) {
     console.log(`🌐 Serving frontend from: ${distPath}`);
