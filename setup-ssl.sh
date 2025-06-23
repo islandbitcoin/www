@@ -106,7 +106,7 @@ systemctl reload nginx
 
 # Check if Island Bitcoin is running
 echo "🏝️ Checking if Island Bitcoin is running..."
-if ! docker compose ps | grep -q "Up"; then
+if ! docker compose ps 2>/dev/null | grep -q "Up"; then
     echo "⚠️  Island Bitcoin doesn't appear to be running."
     echo "   Run './deploy-digitalocean.sh' first to start the application."
     read -p "Continue with SSL setup anyway? (y/n): " CONTINUE
@@ -115,13 +115,33 @@ if ! docker compose ps | grep -q "Up"; then
     fi
 fi
 
+# Check DNS records
+echo ""
+echo "🔍 Checking DNS records..."
+DOMAIN_IP=$(dig +short $DOMAIN A | head -n1)
+WWW_DOMAIN_IP=$(dig +short www.$DOMAIN A | head -n1)
+SERVER_IP=$(curl -s ifconfig.me)
+
+echo "   Server IP: $SERVER_IP"
+echo "   $DOMAIN → $DOMAIN_IP"
+echo "   www.$DOMAIN → $WWW_DOMAIN_IP"
+
+# Determine which domains to request certificates for
+CERT_DOMAINS="-d $DOMAIN"
+if [ -n "$WWW_DOMAIN_IP" ] && [ "$WWW_DOMAIN_IP" = "$SERVER_IP" ]; then
+    CERT_DOMAINS="$CERT_DOMAINS -d www.$DOMAIN"
+    echo "✅ Both domain and www subdomain are configured"
+else
+    echo "⚠️  www.$DOMAIN is not configured, proceeding with $DOMAIN only"
+fi
+
 # Get SSL certificate
 echo ""
 echo "🔒 Getting SSL certificate from Let's Encrypt..."
 echo "   This will modify your Nginx configuration automatically."
 echo ""
 
-certbot --nginx -d $DOMAIN -d www.$DOMAIN --email $EMAIL --agree-tos --no-eff-email
+certbot --nginx $CERT_DOMAINS --email $EMAIL --agree-tos --no-eff-email
 
 # Set up auto-renewal
 echo ""
@@ -142,7 +162,9 @@ echo "✅ SSL Setup Complete!"
 echo ""
 echo "🌐 Your site is now available at:"
 echo "   https://$DOMAIN"
-echo "   https://www.$DOMAIN"
+if [ "$CERT_DOMAINS" = "-d $DOMAIN -d www.$DOMAIN" ]; then
+    echo "   https://www.$DOMAIN"
+fi
 echo ""
 echo "🔒 SSL certificate will auto-renew before expiration."
 echo ""
