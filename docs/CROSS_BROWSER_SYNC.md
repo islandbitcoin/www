@@ -1,6 +1,6 @@
 # Cross-Browser Configuration Sync
 
-Island Bitcoin's admin configuration automatically syncs across different browsers and devices using the unified server.
+Island Bitcoin's configuration automatically syncs across all browsers and devices using the unified server. This allows all users to see updated settings like minimum withdrawal amounts in real-time.
 
 ## How It Works
 
@@ -28,27 +28,33 @@ The unified server must be running with the configuration API enabled:
 docker compose up -d
 ```
 
-### 3. Admin Access
+### 3. User Access
 
-You must be logged in as an admin user in all browsers where you want sync to work.
+- **All users** (logged in or anonymous) can view the configuration
+- **Only admin users** can modify the configuration
+- Configuration updates sync to all users automatically
 
 ## Features
 
 ### Synced Settings
 
-All admin configuration settings sync across browsers:
-- BTCPay Server configuration
-- Game reward amounts
-- Payout limits
-- Rate limits
-- Admin public keys
-- Maintenance mode
+All configuration settings sync across browsers for all users:
+- **Visible to all users:**
+  - Minimum withdrawal amount
+  - Game reward amounts
+  - Payout limits
+  - Maintenance mode status
+- **Admin-only visibility:**
+  - BTCPay Server configuration
+  - Rate limits
+  - Admin public keys
 
 ### Save Config Button
 
-The "Save Config" button on the Limits tab:
+The "Save Config" button on the Admin page's Limits tab:
+- Available only to admin users
 - Forces an immediate save to the server
-- Ensures all browsers receive the latest configuration
+- Updates sync to all users (both admin and non-admin)
 - Shows a confirmation when sync is successful
 
 ## Troubleshooting
@@ -78,4 +84,6 @@ If you see "Too many requests" errors:
 - **Polling Interval**: 10 seconds
 - **Storage**: Redis for persistent storage across server restarts
 - **Cache TTL**: 5 minutes for performance optimization
-- **Security**: API key authentication required
+- **Security**: 
+  - Read access: Public (no authentication required)
+  - Write access: Admin-only (API key authentication required)

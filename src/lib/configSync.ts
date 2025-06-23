@@ -77,9 +77,7 @@ class ConfigSyncService {
     try {
       const response = await fetch(`${SYNC_SERVER_URL}/api/config`, {
         method: 'GET',
-        headers: {
-          'X-API-Key': API_KEY
-        },
+        // No auth required for reading config - it's public
         signal: AbortSignal.timeout(5000)
       });
 
@@ -111,7 +109,7 @@ class ConfigSyncService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': API_KEY
+          'X-API-Key': API_KEY  // Auth required for writing config
         },
         body: JSON.stringify({
           pullPaymentId,
@@ -148,7 +146,7 @@ class ConfigSyncService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': API_KEY
+          'X-API-Key': API_KEY  // Auth required for writing config
         },
         body: JSON.stringify(config),
         signal: AbortSignal.timeout(5000)
@@ -181,7 +179,7 @@ class ConfigSyncService {
       const response = await fetch(`${SYNC_SERVER_URL}/api/config`, {
         method: 'DELETE',
         headers: {
-          'X-API-Key': API_KEY
+          'X-API-Key': API_KEY  // Auth required for deleting config
         },
         signal: AbortSignal.timeout(5000)
       });

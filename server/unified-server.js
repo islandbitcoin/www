@@ -152,9 +152,9 @@ let gameConfig = { ...DEFAULT_CONFIG };
     const persistedConfig = await cache.get(CONFIG_PERSISTENT_KEY);
     if (persistedConfig) {
       gameConfig = { ...DEFAULT_CONFIG, ...persistedConfig };
-      console.log('📥 Loaded persisted config from Redis');
+      // Config loaded from Redis
     } else {
-      console.log('🆕 No persisted config found, using defaults');
+      // No persisted config, using defaults
     }
   } catch (error) {
     console.error('❌ Failed to load persisted config:', error);
@@ -216,8 +216,9 @@ app.get('/api/health', async (req, res) => {
 });
 
 
-// Get game configuration with Redis caching
-app.get('/api/config', authenticateAPI, async (req, res) => {
+// Get game configuration - PUBLIC endpoint (no auth required)
+// All users need to see config for things like min withdrawal amounts
+app.get('/api/config', async (req, res) => {
   try {
     // Always try to get the latest from persistent storage first
     const persistedConfig = await cache.get(CONFIG_PERSISTENT_KEY);
@@ -226,8 +227,7 @@ app.get('/api/config', authenticateAPI, async (req, res) => {
       gameConfig = { ...DEFAULT_CONFIG, ...persistedConfig };
     }
 
-    // Log request without sensitive data
-    console.log('📤 Config requested');
+    // Config requested
 
     res.json({
       success: true,
@@ -245,7 +245,7 @@ app.get('/api/config', authenticateAPI, async (req, res) => {
   }
 });
 
-// Update game configuration
+// Update game configuration - ADMIN ONLY endpoint
 app.post('/api/config', authenticateAPI, configLimiter, validateConfigUpdate, handleValidationErrors, async (req, res) => {
   const {
     pullPaymentId,
@@ -283,7 +283,7 @@ app.post('/api/config', authenticateAPI, configLimiter, validateConfigUpdate, ha
   // Persist config to Redis (no TTL for permanent storage)
   try {
     await cache.set(CONFIG_PERSISTENT_KEY, gameConfig, 0);
-    console.log('💾 Config persisted to Redis');
+    // Config persisted to Redis
   } catch (error) {
     console.error('❌ Failed to persist config:', error);
   }
@@ -291,15 +291,7 @@ app.post('/api/config', authenticateAPI, configLimiter, validateConfigUpdate, ha
   // Also set in cache for faster access
   await cache.set(CONFIG_CACHE_KEY, gameConfig, CONFIG_CACHE_TTL);
   
-  // Log configuration update without sensitive data
-  const safeConfig = {
-    ...gameConfig,
-    btcPayApiKey: gameConfig.btcPayApiKey ? '***' : null,
-    pullPaymentId: gameConfig.pullPaymentId ? '***' : null,
-    adminPubkeys: gameConfig.adminPubkeys ? `[${gameConfig.adminPubkeys.length} admins]` : null
-  };
-  console.log('Configuration updated:', safeConfig);
-  console.log('🗑️ Cache invalidated and refreshed');
+  // Configuration updated
   
   res.json({
     success: true,
@@ -307,7 +299,7 @@ app.post('/api/config', authenticateAPI, configLimiter, validateConfigUpdate, ha
   });
 });
 
-// Remove game configuration
+// Remove game configuration - ADMIN ONLY endpoint
 app.delete('/api/config', authenticateAPI, configLimiter, async (req, res) => {
   gameConfig = {
     pullPaymentId: null,
@@ -339,8 +331,7 @@ app.delete('/api/config', authenticateAPI, configLimiter, async (req, res) => {
   await cache.del(CONFIG_CACHE_KEY);
   await cache.del(CONFIG_PERSISTENT_KEY);
   
-  console.log('Configuration removed');
-  console.log('🗑️ Cache and persistent storage cleared');
+  // Configuration removed and cache cleared
   
   res.json({
     success: true,

@@ -65,14 +65,12 @@ export class ConfigService {
         if (Object.keys(syncConfig).length > 0) {
           const success = await configSyncService.saveFullConfig(syncConfig);
           if (success) {
-            console.log('✅ Config synced to server');
             return;
           }
         }
       }
 
       // Fallback to Nostr sync if server is unavailable
-      console.log('📡 Using Nostr for config sync...');
       const nostrConfig: Partial<NostrSyncConfig> = {};
       
       // Map fields to Nostr config format
@@ -90,14 +88,9 @@ export class ConfigService {
       if ('requireApprovalAbove' in updates) nostrConfig.requireApprovalAbove = updates.requireApprovalAbove;
       if ('maintenanceMode' in updates) nostrConfig.maintenanceMode = updates.maintenanceMode;
 
-      const nostrSuccess = await nostrConfigSyncService.saveConfig(nostrConfig);
-      if (nostrSuccess) {
-        console.log('✅ Config synced via Nostr');
-      } else {
-        console.error('❌ Failed to sync config via Nostr');
-      }
+      await nostrConfigSyncService.saveConfig(nostrConfig);
     } catch (error) {
-      console.error('❌ Failed to sync config:', error);
+      // Failed to sync config
     }
   }
 
@@ -122,7 +115,6 @@ export class ConfigService {
       
       // If server config not available, try Nostr
       if (!serverConfig) {
-        console.log('📡 Loading config from Nostr...');
         serverConfig = await nostrConfigSyncService.getConfig();
       }
       
@@ -153,10 +145,8 @@ export class ConfigService {
       this.config = { ...this.config, ...mergedConfig };
       secureStorage.set("gameWalletConfig", this.config);
       
-      console.log('✅ Config loaded successfully');
       return true;
     } catch (error) {
-      console.error('❌ Failed to load config:', error);
       return false;
     }
   }

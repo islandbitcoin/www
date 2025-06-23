@@ -523,10 +523,50 @@ export default function Admin() {
       <div className="min-h-screen bg-gradient-to-b from-caribbean-sand via-white to-caribbean-sand/30 py-8">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Game Wallet Admin</h1>
-            <p className="text-muted-foreground mt-2">
-              Manage game rewards and wallet configuration
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Game Wallet Admin</h1>
+                <p className="text-muted-foreground mt-2">
+                  Manage game rewards and wallet configuration
+                </p>
+              </div>
+              <Button
+                onClick={async () => {
+                  setIsSaving(true);
+                  try {
+                    // Save entire config object to server
+                    await gameWalletManager.saveConfig(config);
+                    toast({
+                      title: 'All settings saved',
+                      description: 'Configuration has been synced to the server and will update across all browsers.',
+                    });
+                  } catch (error) {
+                    toast({
+                      title: 'Failed to save',
+                      description: 'Could not sync configuration. Please try again.',
+                      variant: 'destructive'
+                    });
+                  } finally {
+                    setIsSaving(false);
+                  }
+                }}
+                disabled={isSaving}
+                className="bg-caribbean-ocean hover:bg-caribbean-ocean/90"
+                size="lg"
+              >
+                {isSaving ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save All Config
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
         {/* Statistics Card */}
@@ -833,7 +873,7 @@ export default function Admin() {
                   ) : (
                     <>
                       <Save className="mr-2 h-4 w-4" />
-                      Save Config
+                      Save Limits
                     </>
                   )}
                 </Button>
@@ -987,7 +1027,7 @@ export default function Admin() {
                       name="serverUrl"
                       type="url"
                       placeholder="https://your-btcpay-server.com"
-                      defaultValue={config.btcPayServerUrl || ''}
+                      defaultValue={''}
                       required
                     />
                     <p className="text-xs text-muted-foreground mt-1">
@@ -1002,7 +1042,7 @@ export default function Admin() {
                       name="storeId"
                       type="text"
                       placeholder="STORE123..."
-                      defaultValue={config.btcPayStoreId || ''}
+                      defaultValue={''}
                       required
                     />
                     <p className="text-xs text-muted-foreground mt-1">
@@ -1017,7 +1057,7 @@ export default function Admin() {
                       name="apiKey"
                       type="password"
                       placeholder="••••••••••••••••"
-                      defaultValue={config.btcPayApiKey || ''}
+                      defaultValue={''}
                       required
                     />
                     <p className="text-xs text-muted-foreground mt-1">
@@ -1032,7 +1072,7 @@ export default function Admin() {
                       name="pullPaymentId"
                       type="text"
                       placeholder="abc123def456..."
-                      defaultValue={config.pullPaymentId || ''}
+                      defaultValue={''}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
                       Optional: Fallback shared pull payment for when API is not available
