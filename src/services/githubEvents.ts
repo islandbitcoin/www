@@ -218,7 +218,6 @@ export class GitHubEventsService {
         }
         
         if (event.event.status !== 'published') {
-          `);
           return false;
         }
         
@@ -230,10 +229,7 @@ export class GitHubEventsService {
         const eventDate = this.getEventDate(event);
         const displayDate = nextDate || eventDate;
         
-        if (displayDate) {
-          }`);
-        } else {
-          }
+        // displayDate will be used for sorting
         
         return {
           event,

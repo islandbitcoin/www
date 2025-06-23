@@ -84,11 +84,6 @@ export function useEncryptedDMs() {
 
       let decrypted: string;
       
-      + '...',
-        isNip44Supported,
-        isNip04Supported,
-      });
-      
       // Try NIP-44 first (newer, more secure)
       if (isNip44Supported) {
         try {
@@ -109,7 +104,6 @@ export function useEncryptedDMs() {
       } else if (isNip04Supported) {
         // Only NIP-04 is available
         decrypted = await user!.signer.nip04!.decrypt(otherPubkey, event.content);
-        `);
       } else {
         throw new Error('No decryption method available');
       }

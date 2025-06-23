@@ -35,7 +35,6 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
     }
     
     allRelays.current = relays;
-    );
     
     queryClient.resetQueries();
   }, [config.relayUrl, presetRelays, queryClient]);
@@ -87,8 +86,6 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
             break;
           }
         }
-
-        );
 
         return [...publishRelays];
       },

@@ -90,7 +90,7 @@ class ConfigSyncService {
       if (result.success && result.data) {
         // Cache the config
         cacheManager.set(CACHE_KEYS.CONFIG, result.data, CONFIG_CACHE_TTL);
-        }
+      }
       return result.success ? result.data : null;
     } catch (error) {
       console.error('Failed to get config from sync server:', error);
@@ -127,7 +127,7 @@ class ConfigSyncService {
       if (result.success) {
         // Invalidate cache on successful save
         cacheManager.remove(CACHE_KEYS.CONFIG);
-        }
+      }
       return result.success;
     } catch (error) {
       console.error('Failed to save config to sync server:', error);
@@ -161,7 +161,7 @@ class ConfigSyncService {
       if (result.success) {
         // Invalidate cache on successful save
         cacheManager.remove(CACHE_KEYS.CONFIG);
-        }
+      }
       return result.success;
     } catch (error) {
       console.error('Failed to save full config to sync server:', error);
@@ -193,7 +193,7 @@ class ConfigSyncService {
       if (result.success) {
         // Invalidate cache on successful save
         cacheManager.remove(CACHE_KEYS.CONFIG);
-        }
+      }
       return result.success;
     } catch (error) {
       console.error('Failed to remove config from sync server:', error);
