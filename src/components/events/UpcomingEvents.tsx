@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Calendar, Users, Zap, MapPin, RefreshCw, AlertCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Users, Zap, MapPin, RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
 import { useGitHubEvents } from '@/hooks/useGitHubEvents';
 import { GitHubEventsService } from '@/services/githubEvents';
+import { cn } from '@/lib/utils';
 
 interface UpcomingEventsProps {
   className?: string;
@@ -45,6 +48,13 @@ function EventTypeLabel({ type }: { type: string }) {
 export function UpcomingEvents({ className }: UpcomingEventsProps) {
   const { events, isLoading, error, refresh } = useGitHubEvents(3);
   const eventsService = GitHubEventsService.getInstance();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refresh();
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
 
   // Loading state
   if (isLoading) {
@@ -78,11 +88,12 @@ export function UpcomingEvents({ className }: UpcomingEventsProps) {
             Check back soon for upcoming Bitcoin events
           </p>
           <Button 
-            onClick={refresh} 
+            onClick={handleRefresh} 
             variant="outline" 
             className="gap-2"
+            disabled={isRefreshing}
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
             Try Again
           </Button>
         </div>
@@ -91,27 +102,57 @@ export function UpcomingEvents({ className }: UpcomingEventsProps) {
   }
 
   return (
-    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 ${className || ''}`}>
+    <div className={className}>
+      <div className="flex justify-end mb-4">
+        <Button 
+          onClick={handleRefresh} 
+          variant="ghost" 
+          size="sm"
+          className="gap-2"
+          disabled={isRefreshing}
+        >
+          <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+          Refresh Events
+        </Button>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       {events.map((eventData) => {
         const event = eventData.event;
         const location = event.location;
-        const locationString = location.address 
+        const locationString = location?.address 
           ? `${location.address.city}, ${location.address.country}`
-          : location.name;
+          : location?.name || 'Location TBD';
+        
+        // Check if this is a past event
+        const nextDate = eventsService.getNextOccurrence(eventData);
+        const eventDate = eventsService.getEventDate(eventData);
+        const isPastEvent = !nextDate && eventDate && eventDate < new Date();
         
         return (
           <Card 
             key={event.id} 
-            className="hover:shadow-lg transition-shadow border-caribbean-sand hover:border-caribbean-ocean/30"
+            className={cn(
+              "hover:shadow-lg transition-shadow border-caribbean-sand hover:border-caribbean-ocean/30",
+              isPastEvent && "opacity-75"
+            )}
           >
             <CardHeader>
-              <CardTitle className="text-caribbean-ocean">
-                {event.basic_info.title}
-              </CardTitle>
-              <CardDescription className="flex items-center gap-2">
-                <MapPin className="h-3 w-3" />
-                {locationString} • {eventsService.formatEventDate(eventData)}
-              </CardDescription>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <CardTitle className="text-caribbean-ocean">
+                    {event.basic_info.title}
+                  </CardTitle>
+                  <CardDescription className="flex items-center gap-2 mt-1">
+                    <MapPin className="h-3 w-3" />
+                    {locationString} • {eventsService.formatEventDate(eventData)}
+                  </CardDescription>
+                </div>
+                {isPastEvent && (
+                  <Badge variant="secondary" className="ml-2">
+                    Past
+                  </Badge>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 line-clamp-3">
@@ -135,10 +176,31 @@ export function UpcomingEvents({ className }: UpcomingEventsProps) {
                   </span>
                 </div>
               )}
+              
+              {/* Register button */}
+              {event.registration?.url && !isPastEvent && (
+                <div className="mt-4 pt-4 border-t border-caribbean-sand">
+                  <a 
+                    href={event.registration.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <Button 
+                      size="sm" 
+                      className="w-full bg-caribbean-ocean hover:bg-caribbean-ocean/90 gap-2"
+                    >
+                      Register Now
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  </a>
+                </div>
+              )}
             </CardContent>
           </Card>
         );
       })}
+      </div>
     </div>
   );
 }

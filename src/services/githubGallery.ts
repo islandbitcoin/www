@@ -73,7 +73,6 @@ export class GitHubGalleryService {
     // Check cache first
     const cached = this.loadCache();
     if (cached) {
-      console.log('📸 Using cached gallery files:', cached.files.length);
       return cached.files;
     }
 
@@ -97,8 +96,6 @@ export class GitHubGalleryService {
         file.type === 'file' && this.isValidMediaFile(file.name)
       );
 
-      console.log(`📸 Fetched ${mediaFiles.length} media files from GitHub`);
-      
       // Cache the results
       this.saveCache(mediaFiles);
       

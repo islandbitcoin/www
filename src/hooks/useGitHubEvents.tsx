@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GitHubEventsService } from '@/services/githubEvents';
+import { Event } from '@/types/events';
 
 interface UseGitHubEventsResult {
-  events: any[];
+  events: Event[];
   isLoading: boolean;
   error: string | null;
   refresh: () => void;
 }
 
 export function useGitHubEvents(limit: number = 3): UseGitHubEventsResult {
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +32,7 @@ export function useGitHubEvents(limit: number = 3): UseGitHubEventsResult {
       // Get upcoming events sorted by date
       const upcomingEvents = eventsService.getUpcomingEvents(allEvents, limit);
       
-      setEvents(upcomingEvents);
+      setEvents(limit === 100 ? allEvents : upcomingEvents);
     } catch (err) {
       console.error('Failed to load events:', err);
       setError('Failed to load events');

@@ -35,7 +35,7 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
     }
     
     allRelays.current = relays;
-    console.log('🌐 NostrProvider: Using relays for queries:', Array.from(relays));
+    );
     
     queryClient.resetQueries();
   }, [config.relayUrl, presetRelays, queryClient]);
@@ -54,7 +54,6 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
   if (!pool.current) {
     pool.current = new NPool({
       open(url: string) {
-        console.log(`🔌 Opening connection to relay: ${url}`);
         return new NRelay1(url);
       },
       reqRouter(filters) {
@@ -72,7 +71,7 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
         }
         
         // Debug logging - commented out to reduce console noise
-        // console.log(`📡 Routing query to ${relayMap.size} relays:`, Array.from(relayMap.keys()));
+        // ));
         
         return relayMap;
       },
@@ -89,7 +88,7 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
           }
         }
 
-        console.log(`📤 Publishing to ${publishRelays.size} relays:`, Array.from(publishRelays));
+        );
 
         return [...publishRelays];
       },

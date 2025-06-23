@@ -55,12 +55,10 @@ export function useNostrFeed({ mode, domains, limit }: UseNostrFeedOptions) {
       
       const cachedMembers = cache.getCachedMembers();
       if (cachedMembers && cachedMembers.length > 0) {
-        console.log(`📦 Using ${cachedMembers.length} cached community members`);
         validPubkeys = cachedMembers.map(m => m.pubkey);
         debugInfo.validCommunityPubkeys = cachedMembers.length;
       } else {
         // Fetch profiles if not cached
-        console.log('📡 No cache found, querying for community members...');
         const profiles = await nostr.query([{ kinds: [0], limit: 5000 }], { signal });
         debugInfo.totalProfiles = profiles.length;
         

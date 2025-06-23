@@ -1,6 +1,5 @@
 import { useSeoMeta } from "@unhead/react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Image, Menu, Settings as SettingsIcon } from "lucide-react";
 import { useState } from "react";
 import { LoginArea } from "@/components/auth/LoginArea";
@@ -114,9 +113,15 @@ const Index = () => {
             <UpcomingEvents className="max-w-6xl mx-auto" />
           </LazyWrapper>
 
-          <div className="text-center mt-8">
-            <a
-              href={`https://github.com/islandbitcoin/islandbitcoin-community/issues/new?title=Event%20Submission:%20[Your%20Event%20Name]&body=${encodeURIComponent(`## Event Submission Template
+          <div className="text-center mt-8 space-y-4">
+            <Link to="/events">
+              <Button variant="default" className="bg-caribbean-ocean hover:bg-caribbean-ocean/90">
+                See All Events
+              </Button>
+            </Link>
+            <div>
+              <a
+                href={`https://github.com/islandbitcoin/islandbitcoin-community/issues/new?title=Event%20Submission:%20[Your%20Event%20Name]&body=${encodeURIComponent(`## Event Submission Template
 
 **Event Name:** Satoshi Saturdays
 
@@ -170,6 +175,7 @@ Weekly Bitcoin education sessions. Come learn, share, and orange pill your commu
                 Submit an Event
               </Button>
             </a>
+            </div>
           </div>
         </div>
       </section>

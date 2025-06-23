@@ -4,6 +4,7 @@ import { SetupCheck } from "@/components/admin";
 
 import Index from "./pages/Index";
 import About from "./pages/About";
+import Events from "./pages/Events";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import AdminSetup from "./pages/AdminSetup";
@@ -18,6 +19,7 @@ export function AppRouter() {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
+          <Route path="/events" element={<Events />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin-setup" element={<AdminSetup />} />

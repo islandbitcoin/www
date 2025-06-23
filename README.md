@@ -1,16 +1,27 @@
 # Island Bitcoin ⚡️ 🏝️
 
-A Bitcoin Lightning Community, Events and gaming platform built for the Caribbean Bitcoin community. Earn sats by playing Bitcoin-themed games, participating in tournaments, and engaging with the community.
+A Bitcoin Lightning Community, Events and gaming platform built for the Caribbean Bitcoin community. Earn real sats by playing Bitcoin-themed games, participating in tournaments, and engaging with the community.
+
+## 🎉 What's New in v2.0.0
+
+- **Proof of Work Rewards**: Satoshi Stacker now features real Bitcoin rewards through Lightning Network
+- **Enhanced Security**: Games with rewards are hidden by default and require admin activation
+- **Performance Optimizations**: Faster load times and better caching with optimized production builds
+- **Admin Controls**: New game management interface for controlling feature availability
 
 ## 🎮 Features
 
 ### Games
 - **Bitcoin Trivia**: Test your Bitcoin knowledge across different difficulty levels
-- **Satoshi Stacker**: Click-based stacking game with achievements and power-ups
+- **Satoshi Stacker**: Click-based stacking game with proof-of-work rewards (admin-activated)
+  - Earn 1-210 sats based on your score
+  - SHA-256 proof-of-work prevents cheating
+  - Lightning address integration for instant payouts
 - **Leaderboards**: Daily, weekly, and all-time rankings
 
 ### Lightning Integration
 - **Instant Payouts**: Earn real sats directly to your Lightning wallet
+- **Proof of Work**: Anti-bot system ensures fair reward distribution
 - **Pull Payments**: QR code-based withdrawals via BTCPay Server
 - **Low Minimum**: Withdraw as little as 100 sats
 

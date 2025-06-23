@@ -31,6 +31,11 @@ export interface GameWalletConfig {
   requireApprovalAbove: number; // Manual approval for large payouts
   maintenanceMode: boolean;
   
+  // Game Visibility Settings
+  gameVisibility: {
+    satoshiStacker: boolean; // Show/hide Satoshi Stacker game
+  };
+  
   // Pull Payment Settings (simplified BTCPay integration)
   pullPaymentId?: string; // BTCPay pull payment ID for withdrawals (legacy - for shared pull payment)
   btcPayServerUrl?: string; // Just the server URL for LNURL generation
@@ -98,4 +103,7 @@ export const DEFAULT_CONFIG: GameWalletConfig = {
   adminPubkeys: [], // No default admins - first user to access admin setup becomes admin
   requireApprovalAbove: 5000,
   maintenanceMode: false,
+  gameVisibility: {
+    satoshiStacker: false, // Hidden by default
+  },
 };

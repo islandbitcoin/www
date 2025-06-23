@@ -1,7 +1,7 @@
 import { useSeoMeta } from "@unhead/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, User, Palette, Bell, Zap, ArrowLeft, Users } from "lucide-react";
+import { Shield, User, Palette, Bell, ArrowLeft, Users } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { LoginArea } from "@/components/auth/LoginArea";
 import { PrivacySettings, EditProfileForm, ReferralPanel } from "@/components/lazy";

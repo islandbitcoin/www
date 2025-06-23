@@ -84,9 +84,7 @@ export function useEncryptedDMs() {
 
       let decrypted: string;
       
-      console.log(`Attempting to decrypt message ${event.id}`, {
-        otherPubkey,
-        contentPreview: event.content.substring(0, 50) + '...',
+      + '...',
         isNip44Supported,
         isNip04Supported,
       });
@@ -95,15 +93,12 @@ export function useEncryptedDMs() {
       if (isNip44Supported) {
         try {
           decrypted = await user!.signer.nip44!.decrypt(otherPubkey, event.content);
-          console.log(`Successfully decrypted with NIP-44`);
-        } catch (nip44Error) {
+          } catch (nip44Error) {
           // If NIP-44 fails and NIP-04 is available, try that
           if (isNip04Supported) {
-            console.log('NIP-44 decryption failed, trying NIP-04', nip44Error);
             try {
               decrypted = await user!.signer.nip04!.decrypt(otherPubkey, event.content);
-              console.log(`Successfully decrypted with NIP-04`);
-            } catch (nip04Error) {
+              } catch (nip04Error) {
               console.error('NIP-04 decryption also failed', nip04Error);
               throw nip04Error;
             }
@@ -114,7 +109,7 @@ export function useEncryptedDMs() {
       } else if (isNip04Supported) {
         // Only NIP-04 is available
         decrypted = await user!.signer.nip04!.decrypt(otherPubkey, event.content);
-        console.log(`Successfully decrypted with NIP-04 (only method available)`);
+        `);
       } else {
         throw new Error('No decryption method available');
       }

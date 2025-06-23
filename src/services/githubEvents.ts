@@ -1,3 +1,5 @@
+import { Event } from '@/types/events';
+
 interface EventFile {
   name: string;
   path: string;
@@ -8,60 +10,6 @@ interface EventFile {
   git_url: string;
   download_url: string;
   type: 'file' | 'dir';
-}
-
-interface EventDateTime {
-  start: string;
-  end: string;
-  timezone: string;
-  recurring?: {
-    enabled: boolean;
-    frequency?: string;
-    end_date?: string;
-  };
-}
-
-interface EventBasicInfo {
-  title: string;
-  subtitle?: string;
-  description: string;
-  summary: string;
-  type: string;
-  categories?: string[];
-  tags?: string[];
-}
-
-interface EventLocation {
-  type: string;
-  name: string;
-  address?: {
-    city: string;
-    country: string;
-    street?: string;
-  };
-}
-
-interface EventData {
-  id: string;
-  status: string;
-  basic_info: EventBasicInfo;
-  datetime: EventDateTime;
-  location: EventLocation;
-  registration?: {
-    required: boolean;
-    fee?: {
-      amount: number;
-      currency: string;
-    };
-  };
-  media?: {
-    featured_image?: string;
-    thumbnail?: string;
-  };
-}
-
-interface Event {
-  event: EventData;
 }
 
 interface EventsCache {
@@ -121,7 +69,6 @@ export class GitHubEventsService {
     // Check cache first
     const cached = this.loadCache();
     if (cached) {
-      console.log('📅 Using cached events:', cached.events.length);
       return cached.events;
     }
 
@@ -140,13 +87,13 @@ export class GitHubEventsService {
 
       const files = await response.json() as EventFile[];
       
-      // Filter for JSON files only
+      // Filter for JSON files only, excluding templates
       const jsonFiles = files.filter(file => 
-        file.type === 'file' && file.name.endsWith('.json')
+        file.type === 'file' && 
+        file.name.endsWith('.json') &&
+        !file.name.includes('template')
       );
 
-      console.log(`📅 Found ${jsonFiles.length} event files`);
-      
       // Fetch content of each JSON file
       const eventPromises = jsonFiles.map(async (file) => {
         try {
@@ -163,8 +110,6 @@ export class GitHubEventsService {
       });
 
       const events = (await Promise.all(eventPromises)).filter((event): event is Event => event !== null);
-      
-      console.log(`📅 Successfully loaded ${events.length} events`);
       
       // Cache the results
       this.saveCache(events);
@@ -191,7 +136,7 @@ export class GitHubEventsService {
       
       // Otherwise parse as full datetime
       return new Date(datetime.start);
-    } catch (error) {
+    } catch {
       console.error('Failed to parse date:', datetime.start);
       return null;
     }
@@ -218,7 +163,7 @@ export class GitHubEventsService {
     }
 
     // For recurring events, find the next occurrence
-    let nextDate = new Date(eventDate);
+    const nextDate = new Date(eventDate);
     
     while (nextDate <= now) {
       switch (recurring.frequency) {
@@ -228,7 +173,7 @@ export class GitHubEventsService {
         case 'biweekly':
           nextDate.setDate(nextDate.getDate() + 14);
           break;
-        case 'monthly':
+        case 'monthly': {
           // For monthly events, preserve the "last X of month" pattern
           const currentDay = nextDate.getDate();
           nextDate.setMonth(nextDate.getMonth() + 1);
@@ -239,6 +184,7 @@ export class GitHubEventsService {
             nextDate.setMonth(nextDate.getMonth() + 2);
           }
           break;
+        }
         case 'yearly':
           nextDate.setFullYear(nextDate.getFullYear() + 1);
           break;
@@ -257,37 +203,53 @@ export class GitHubEventsService {
   }
 
   getUpcomingEvents(events: Event[], limit: number = 3): Event[] {
-    const now = new Date();
-    
-    console.log(`📅 Processing ${events.length} total events`);
-    
     // Filter and sort events
     const eventsWithDates = events
       .filter(event => {
-        // Only show published events
-        if (event.event.status !== 'published') {
-          console.log(`❌ Event ${event.event.id} is not published (status: ${event.event.status})`);
+        // Validate event has required fields
+        if (!event.event || !event.event.id || !event.event.status) {
           return false;
         }
         
-        // Get next occurrence (handles recurring events)
-        const nextDate = this.getNextOccurrence(event);
-        if (!nextDate) {
-          console.log(`❌ Event ${event.event.id} has no valid future date`);
-        } else {
-          console.log(`✅ Event ${event.event.id} next occurrence: ${nextDate.toISOString()}`);
+        // Only show published events
+        const validStatuses = ['published', 'draft', 'cancelled', 'postponed'];
+        if (!validStatuses.includes(event.event.status)) {
+          return false;
         }
-        return nextDate !== null;
+        
+        if (event.event.status !== 'published') {
+          `);
+          return false;
+        }
+        
+        return true;
       })
-      .map(event => ({
-        event,
-        nextDate: this.getNextOccurrence(event)!
-      }));
+      .map(event => {
+        // Get next occurrence for recurring events, or original date for past events
+        const nextDate = this.getNextOccurrence(event);
+        const eventDate = this.getEventDate(event);
+        const displayDate = nextDate || eventDate;
+        
+        if (displayDate) {
+          }`);
+        } else {
+          }
+        
+        return {
+          event,
+          nextDate: displayDate
+        };
+      })
+      .filter(item => item.nextDate !== null);
     
-    console.log(`📅 Found ${eventsWithDates.length} upcoming events`);
-    
+    // Sort by date (closest to now first, whether past or future)
+    const now = new Date();
     const sorted = eventsWithDates
-      .sort((a, b) => a.nextDate.getTime() - b.nextDate.getTime())
+      .sort((a, b) => {
+        const aDiff = Math.abs(a.nextDate!.getTime() - now.getTime());
+        const bDiff = Math.abs(b.nextDate!.getTime() - now.getTime());
+        return aDiff - bDiff;
+      })
       .slice(0, limit)
       .map(item => item.event);
 
@@ -296,7 +258,10 @@ export class GitHubEventsService {
 
   formatEventDate(event: Event): string {
     const nextDate = this.getNextOccurrence(event);
-    if (!nextDate) return 'TBD';
+    const eventDate = this.getEventDate(event);
+    const displayDate = nextDate || eventDate;
+    
+    if (!displayDate) return 'TBD';
 
     const datetime = event.event.datetime;
     const options: Intl.DateTimeFormatOptions = {
@@ -305,8 +270,8 @@ export class GitHubEventsService {
       year: 'numeric'
     };
 
-    // For recurring events, show the pattern
-    if (datetime.recurring?.enabled) {
+    // For recurring events with future dates, show the pattern
+    if (datetime.recurring?.enabled && nextDate) {
       const dateStr = nextDate.toLocaleDateString('en-US', options);
       switch (datetime.recurring.frequency) {
         case 'weekly':
@@ -320,7 +285,7 @@ export class GitHubEventsService {
       }
     }
 
-    return nextDate.toLocaleDateString('en-US', options);
+    return displayDate.toLocaleDateString('en-US', options);
   }
 
   clearCache(): void {

@@ -17,7 +17,8 @@ import {
   CheckCircle2,
   QrCode,
   XCircle,
-  Clock
+  Clock,
+  Coins
 } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useGameWallet } from '@/hooks/useGameWallet';
@@ -562,7 +563,7 @@ export default function Admin() {
 
         {/* Configuration Tabs */}
         <Tabs defaultValue="rewards" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-1">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 gap-1">
             <TabsTrigger value="rewards" className="text-xs md:text-sm">
               <DollarSign className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
               <span>Rewards</span>
@@ -582,6 +583,10 @@ export default function Admin() {
             <TabsTrigger value="admins" className="text-xs md:text-sm">
               <Users className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
               <span>Admins</span>
+            </TabsTrigger>
+            <TabsTrigger value="games" className="text-xs md:text-sm">
+              <Coins className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
+              <span>Games</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1064,6 +1069,51 @@ export default function Admin() {
                     </AlertDescription>
                   </Alert>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Games Tab */}
+          <TabsContent value="games">
+            <Card>
+              <CardHeader>
+                <CardTitle>Game Management</CardTitle>
+                <CardDescription>
+                  Control which games are available to users
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-caribbean-sand hover:border-caribbean-ocean/30 transition-colors">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Coins className="h-5 w-5 text-caribbean-ocean" />
+                        <h4 className="font-medium">Satoshi Stacker</h4>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        A clicker game where users can stack sats and earn real Bitcoin rewards through proof of work
+                      </p>
+                    </div>
+                    <Switch
+                      id="satoshi-stacker"
+                      checked={config.gameVisibility?.satoshiStacker ?? false}
+                      onCheckedChange={(checked) => updateConfig({ 
+                        gameVisibility: { 
+                          ...config.gameVisibility,
+                          satoshiStacker: checked 
+                        }
+                      })}
+                    />
+                  </div>
+                </div>
+
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Games marked as hidden will not appear in the Bitcoin Education Games section.
+                    Only admins can change game visibility settings.
+                  </AlertDescription>
+                </Alert>
               </CardContent>
             </Card>
           </TabsContent>

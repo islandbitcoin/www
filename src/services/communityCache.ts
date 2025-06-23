@@ -97,8 +97,7 @@ export class CommunityMemberCache {
     };
     
     this.saveCache(cache);
-    console.log(`📦 Cached ${members.length} community members`);
-  }
+    }
 
   clearCache(): void {
     localStorage.removeItem(CACHE_KEY);
