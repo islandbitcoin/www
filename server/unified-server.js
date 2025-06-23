@@ -365,28 +365,6 @@ app.delete('/api/config', authenticateAPI, configLimiter, async (req, res) => {
   });
 });
 
-// IP check endpoint (outside of rate limiting)
-app.get('/check-ip', (req, res) => {
-  const clientIp = getClientIp(req);
-  const headers = {
-    'x-real-ip': req.headers['x-real-ip'],
-    'x-forwarded-for': req.headers['x-forwarded-for'],
-    'host': req.headers['host'],
-    'connection-remoteAddress': req.connection?.remoteAddress,
-    'socket-remoteAddress': req.socket?.remoteAddress,
-    'req-ip': req.ip
-  };
-  
-  res.json({
-    yourIp: clientIp,
-    isWhitelisted: WHITELISTED_IPS.includes(clientIp),
-    whitelistedIps: WHITELISTED_IPS.length > 0 ? WHITELISTED_IPS : ['No IPs whitelisted'],
-    headers: headers,
-    trustProxy: app.get('trust proxy'),
-    tip: 'Add this IP to WHITELISTED_IPS in your .env file'
-  });
-});
-
 // ====================
 // Static File Serving
 // ====================
@@ -408,10 +386,32 @@ if (fs.existsSync(distPath)) {
     }
   }));
 
+  // IP check endpoint (must be before catch-all)
+  app.get('/check-ip', (req, res) => {
+    const clientIp = getClientIp(req);
+    const headers = {
+      'x-real-ip': req.headers['x-real-ip'],
+      'x-forwarded-for': req.headers['x-forwarded-for'],
+      'host': req.headers['host'],
+      'connection-remoteAddress': req.connection?.remoteAddress,
+      'socket-remoteAddress': req.socket?.remoteAddress,
+      'req-ip': req.ip
+    };
+    
+    res.json({
+      yourIp: clientIp,
+      isWhitelisted: WHITELISTED_IPS.includes(clientIp),
+      whitelistedIps: WHITELISTED_IPS.length > 0 ? WHITELISTED_IPS : ['No IPs whitelisted'],
+      headers: headers,
+      trustProxy: app.get('trust proxy'),
+      tip: 'Add this IP to WHITELISTED_IPS in your .env file'
+    });
+  });
+  
   // Serve index.html for all non-API routes (SPA support)
   app.get('*', (req, res) => {
-    // Skip API routes
-    if (req.path.startsWith('/api')) {
+    // Skip API routes and check-ip
+    if (req.path.startsWith('/api') || req.path === '/check-ip') {
       return res.status(404).json({ error: 'Not found' });
     }
     
