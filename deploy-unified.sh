@@ -113,7 +113,7 @@ EOF
 
 # Create PM2 ecosystem file
 create_pm2_config() {
-    cat > ecosystem.config.js << 'EOF'
+    cat > ecosystem.config.cjs << 'EOF'
 module.exports = {
   apps: [{
     name: 'island-bitcoin',
@@ -361,7 +361,7 @@ deploy_with_pm2() {
     
     echo ""
     echo "🚀 Starting application with PM2..."
-    pm2 start ecosystem.config.js
+    pm2 start ecosystem.config.cjs
     pm2 save
     
     print_success "Application deployed with PM2!"
