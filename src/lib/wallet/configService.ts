@@ -5,6 +5,7 @@
 
 import { secureStorage } from "../secureStorage";
 import { configSyncService, type SyncConfig } from "../configSync";
+import { nostrConfigSyncService, type NostrSyncConfig } from "../nostrConfigSync";
 import { GameWalletConfig, DEFAULT_CONFIG } from "./types";
 
 export class ConfigService {
@@ -39,39 +40,62 @@ export class ConfigService {
   // Sync configuration to server
   private async syncConfigToServer(updates: Partial<GameWalletConfig>) {
     try {
-      // Check if server is available
+      // First try the sync server
       const serverOnline = await configSyncService.checkServerHealth();
-      if (!serverOnline) {
-        return;
+      if (serverOnline) {
+        // Prepare config for sync (only include fields that are actually being updated)
+        const syncConfig: Partial<Omit<SyncConfig, 'lastUpdated'>> = {};
+        
+        // Only sync fields that are explicitly being updated
+        if ('pullPaymentId' in updates) syncConfig.pullPaymentId = updates.pullPaymentId || null;
+        if ('btcPayServerUrl' in updates) syncConfig.btcPayServerUrl = updates.btcPayServerUrl || null;
+        if ('btcPayStoreId' in updates) syncConfig.btcPayStoreId = updates.btcPayStoreId || null;
+        if ('btcPayApiKey' in updates) syncConfig.btcPayApiKey = updates.btcPayApiKey || null;
+        if ('maxDailyPayout' in updates) syncConfig.maxDailyPayout = updates.maxDailyPayout;
+        if ('maxPayoutPerUser' in updates) syncConfig.maxPayoutPerUser = updates.maxPayoutPerUser;
+        if ('minWithdrawal' in updates) syncConfig.minWithdrawal = updates.minWithdrawal;
+        if ('withdrawalFee' in updates) syncConfig.withdrawalFee = updates.withdrawalFee;
+        if ('gameRewards' in updates) syncConfig.gameRewards = updates.gameRewards;
+        if ('rateLimits' in updates) syncConfig.rateLimits = updates.rateLimits;
+        if ('adminPubkeys' in updates) syncConfig.adminPubkeys = updates.adminPubkeys;
+        if ('requireApprovalAbove' in updates) syncConfig.requireApprovalAbove = updates.requireApprovalAbove;
+        if ('maintenanceMode' in updates) syncConfig.maintenanceMode = updates.maintenanceMode;
+
+        // Only sync if we have fields to update
+        if (Object.keys(syncConfig).length > 0) {
+          const success = await configSyncService.saveFullConfig(syncConfig);
+          if (success) {
+            console.log('✅ Config synced to server');
+            return;
+          }
+        }
       }
 
-      // Prepare config for sync (only include fields that are actually being updated)
-      const syncConfig: Partial<Omit<SyncConfig, 'lastUpdated'>> = {};
+      // Fallback to Nostr sync if server is unavailable
+      console.log('📡 Using Nostr for config sync...');
+      const nostrConfig: Partial<NostrSyncConfig> = {};
       
-      // Only sync fields that are explicitly being updated
-      if ('pullPaymentId' in updates) syncConfig.pullPaymentId = updates.pullPaymentId || null;
-      if ('btcPayServerUrl' in updates) syncConfig.btcPayServerUrl = updates.btcPayServerUrl || null;
-      if ('btcPayStoreId' in updates) syncConfig.btcPayStoreId = updates.btcPayStoreId || null;
-      if ('btcPayApiKey' in updates) syncConfig.btcPayApiKey = updates.btcPayApiKey || null;
-      if ('maxDailyPayout' in updates) syncConfig.maxDailyPayout = updates.maxDailyPayout;
-      if ('maxPayoutPerUser' in updates) syncConfig.maxPayoutPerUser = updates.maxPayoutPerUser;
-      if ('minWithdrawal' in updates) syncConfig.minWithdrawal = updates.minWithdrawal;
-      if ('withdrawalFee' in updates) syncConfig.withdrawalFee = updates.withdrawalFee;
-      if ('gameRewards' in updates) syncConfig.gameRewards = updates.gameRewards;
-      if ('rateLimits' in updates) syncConfig.rateLimits = updates.rateLimits;
-      if ('adminPubkeys' in updates) syncConfig.adminPubkeys = updates.adminPubkeys;
-      if ('requireApprovalAbove' in updates) syncConfig.requireApprovalAbove = updates.requireApprovalAbove;
-      if ('maintenanceMode' in updates) syncConfig.maintenanceMode = updates.maintenanceMode;
+      // Map fields to Nostr config format
+      if ('pullPaymentId' in updates) nostrConfig.pullPaymentId = updates.pullPaymentId || null;
+      if ('btcPayServerUrl' in updates) nostrConfig.btcPayServerUrl = updates.btcPayServerUrl || null;
+      if ('btcPayStoreId' in updates) nostrConfig.btcPayStoreId = updates.btcPayStoreId || null;
+      if ('btcPayApiKey' in updates) nostrConfig.btcPayApiKey = updates.btcPayApiKey || null;
+      if ('maxDailyPayout' in updates) nostrConfig.maxDailyPayout = updates.maxDailyPayout;
+      if ('maxPayoutPerUser' in updates) nostrConfig.maxPayoutPerUser = updates.maxPayoutPerUser;
+      if ('minWithdrawal' in updates) nostrConfig.minWithdrawal = updates.minWithdrawal;
+      if ('withdrawalFee' in updates) nostrConfig.withdrawalFee = updates.withdrawalFee;
+      if ('gameRewards' in updates) nostrConfig.gameRewards = updates.gameRewards;
+      if ('rateLimits' in updates) nostrConfig.rateLimits = updates.rateLimits;
+      if ('adminPubkeys' in updates) nostrConfig.adminPubkeys = updates.adminPubkeys;
+      if ('requireApprovalAbove' in updates) nostrConfig.requireApprovalAbove = updates.requireApprovalAbove;
+      if ('maintenanceMode' in updates) nostrConfig.maintenanceMode = updates.maintenanceMode;
 
-      // Only sync if we have fields to update
-      if (Object.keys(syncConfig).length > 0) {
-        const success = await configSyncService.saveFullConfig(syncConfig);
-        if (success) {
-          // Config synced successfully
-        } else {
-          console.error('❌ Failed to sync config to server');
+      const nostrSuccess = await nostrConfigSyncService.saveConfig(nostrConfig);
+      if (nostrSuccess) {
+        console.log('✅ Config synced via Nostr');
+      } else {
+        console.error('❌ Failed to sync config via Nostr');
       }
-    }
     } catch (error) {
       console.error('❌ Failed to sync config:', error);
     }
@@ -88,13 +112,20 @@ export class ConfigService {
   // Load full config from sync server
   async loadConfigFromServer(): Promise<boolean> {
     try {
-      // Check if server is available
+      let serverConfig: SyncConfig | NostrSyncConfig | null = null;
+      
+      // First try the sync server
       const serverOnline = await configSyncService.checkServerHealth();
-      if (!serverOnline) {
-        return false;
+      if (serverOnline) {
+        serverConfig = await configSyncService.getConfig();
       }
-
-      const serverConfig = await configSyncService.getConfig();
+      
+      // If server config not available, try Nostr
+      if (!serverConfig) {
+        console.log('📡 Loading config from Nostr...');
+        serverConfig = await nostrConfigSyncService.getConfig();
+      }
+      
       if (!serverConfig) {
         return false;
       }
@@ -122,9 +153,10 @@ export class ConfigService {
       this.config = { ...this.config, ...mergedConfig };
       secureStorage.set("gameWalletConfig", this.config);
       
+      console.log('✅ Config loaded successfully');
       return true;
     } catch (error) {
-      console.error('❌ Failed to load config from server:', error);
+      console.error('❌ Failed to load config:', error);
       return false;
     }
   }
