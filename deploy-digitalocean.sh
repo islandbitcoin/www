@@ -15,12 +15,18 @@ if [ ! -f .env ]; then
     exit 1
 fi
 
-# Load environment variables
-export $(grep -v '^#' .env | xargs)
+# Load specific required variables safely
+if [ -f .env ]; then
+    DOMAIN=$(grep "^DOMAIN=" .env | cut -d '=' -f2- | tr -d '"' | tr -d "'")
+else
+    echo "❌ Error: .env file not found!"
+    exit 1
+fi
 
 # Check required variables
 if [ -z "$DOMAIN" ]; then
     echo "❌ Error: DOMAIN not set in .env file!"
+    echo "Please add: DOMAIN=yourdomain.com to your .env file"
     exit 1
 fi
 
