@@ -24,68 +24,29 @@ const CONFIG_CACHE_TTL = 300; // 5 minutes
 // Trust proxy to get correct IPs when behind Nginx
 app.set('trust proxy', true);
 
-// Whitelisted IPs - can be set via environment variable
-const WHITELISTED_IPS = process.env.WHITELISTED_IPS ? 
-  process.env.WHITELISTED_IPS.split(',').map(ip => ip.trim()) : 
-  [];
-
-// Helper function to get client IP
-const getClientIp = (req) => {
-  // Try different headers in order of preference
-  const ip = req.headers['x-real-ip'] || 
-         req.headers['x-forwarded-for']?.split(',')[0].trim() || 
-         req.connection.remoteAddress ||
-         req.socket.remoteAddress ||
-         req.ip;
-  
-  // Remove IPv6 prefix if present
-  return ip?.replace(/^::ffff:/, '') || 'unknown';
+// Skip rate limiting for static assets
+const skipStaticAssets = (req) => {
+  return req.path.startsWith('/assets/') || 
+         req.path.endsWith('.js') || 
+         req.path.endsWith('.css');
 };
 
-// Skip rate limiting for whitelisted IPs
-const skipIfWhitelisted = (req) => {
-  const clientIp = getClientIp(req);
-  const isWhitelisted = WHITELISTED_IPS.includes(clientIp);
-  
-  // Debug logging for rate limit checks
-  if (process.env.NODE_ENV !== 'production' || process.env.DEBUG_RATE_LIMIT) {
-    console.log(`🔍 Rate limit check - IP: ${clientIp}, Path: ${req.path}, Whitelisted: ${isWhitelisted}`);
-    if (WHITELISTED_IPS.length > 0 && !isWhitelisted) {
-      console.log(`📋 Whitelisted IPs: ${WHITELISTED_IPS.join(', ')}`);
-    }
-  }
-  
-  if (isWhitelisted) {
-    console.log(`✅ Whitelisted IP ${clientIp} - skipping rate limit`);
-  }
-  
-  // Also skip static assets
-  const isStaticAsset = req.path.startsWith('/assets/') || 
-                       req.path.endsWith('.js') || 
-                       req.path.endsWith('.css');
-  
-  return isWhitelisted || isStaticAsset;
-};
-
-// Rate limiting configurations
+// Rate limiting configurations (increased 10x)
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 1000, // Limit each IP to 1000 requests per windowMs (was 100)
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: skipIfWhitelisted,
-  keyGenerator: getClientIp
+  skip: skipStaticAssets
 });
 
 const configLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 10, // Limit config updates to 10 per minute
+  max: 100, // Limit config updates to 100 per minute (was 10)
   message: 'Too many config updates, please slow down.',
   standardHeaders: true,
-  legacyHeaders: false,
-  skip: skipIfWhitelisted,
-  keyGenerator: getClientIp,
+  legacyHeaders: false
 });
 
 // CORS configuration for API endpoints only
@@ -187,7 +148,13 @@ app.use('/api', bodyParser.json());
 
 // Debug endpoint to check your IP (before rate limiting)
 app.get('/api/check-ip', (req, res) => {
-  const clientIp = getClientIp(req);
+  const ip = req.headers['x-real-ip'] || 
+         req.headers['x-forwarded-for']?.split(',')[0].trim() || 
+         req.connection.remoteAddress ||
+         req.socket.remoteAddress ||
+         req.ip;
+  const clientIp = ip?.replace(/^::ffff:/, '') || 'unknown';
+  
   const headers = {
     'x-real-ip': req.headers['x-real-ip'],
     'x-forwarded-for': req.headers['x-forwarded-for'],
@@ -199,10 +166,12 @@ app.get('/api/check-ip', (req, res) => {
   
   res.json({
     yourIp: clientIp,
-    isWhitelisted: WHITELISTED_IPS.includes(clientIp),
-    whitelistedIps: WHITELISTED_IPS,
     headers: headers,
-    trustProxy: app.get('trust proxy')
+    trustProxy: app.get('trust proxy'),
+    rateLimits: {
+      general: '1000 requests per 15 minutes',
+      config: '100 requests per minute'
+    }
   });
 });
 
@@ -216,7 +185,6 @@ app.use('/api', generalLimiter);
 // Health check with Redis status
 app.get('/api/health', async (req, res) => {
   const redisConnected = cache.isConnected();
-  const clientIp = getClientIp(req);
   
   res.json({ 
     status: 'ok', 
@@ -224,9 +192,7 @@ app.get('/api/health', async (req, res) => {
     redis: {
       connected: redisConnected,
       status: redisConnected ? 'healthy' : 'disconnected'
-    },
-    clientIp: clientIp,
-    isWhitelisted: WHITELISTED_IPS.includes(clientIp)
+    }
   });
 });
 
@@ -251,7 +217,7 @@ app.get('/api/config', authenticateAPI, async (req, res) => {
     }
 
     // Log request without sensitive data
-    console.log('📤 Config requested from:', getClientIp(req));
+    console.log('📤 Config requested');
 
     res.json({
       success: true,
@@ -388,7 +354,13 @@ if (fs.existsSync(distPath)) {
 
   // IP check endpoint (must be before catch-all)
   app.get('/check-ip', (req, res) => {
-    const clientIp = getClientIp(req);
+    const ip = req.headers['x-real-ip'] || 
+           req.headers['x-forwarded-for']?.split(',')[0].trim() || 
+           req.connection.remoteAddress ||
+           req.socket.remoteAddress ||
+           req.ip;
+    const clientIp = ip?.replace(/^::ffff:/, '') || 'unknown';
+    
     const headers = {
       'x-real-ip': req.headers['x-real-ip'],
       'x-forwarded-for': req.headers['x-forwarded-for'],
@@ -400,11 +372,12 @@ if (fs.existsSync(distPath)) {
     
     res.json({
       yourIp: clientIp,
-      isWhitelisted: WHITELISTED_IPS.includes(clientIp),
-      whitelistedIps: WHITELISTED_IPS.length > 0 ? WHITELISTED_IPS : ['No IPs whitelisted'],
       headers: headers,
       trustProxy: app.get('trust proxy'),
-      tip: 'Add this IP to WHITELISTED_IPS in your .env file'
+      rateLimits: {
+        general: '1000 requests per 15 minutes',
+        config: '100 requests per minute'
+      }
     });
   });
   
@@ -437,10 +410,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Island Bitcoin Unified Server running on port ${PORT}`);
   console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
   console.log(`⚙️  Config API: http://localhost:${PORT}/api/config`);
-  
-  if (WHITELISTED_IPS.length > 0) {
-    console.log(`📋 Whitelisted IPs: ${WHITELISTED_IPS.join(', ')}`);
-  }
+  console.log(`🚦 Rate limits: 1000 req/15min general, 100 req/min config`);
   
   if (fs.existsSync(distPath)) {
     console.log(`🌐 Serving frontend from: ${distPath}`);
