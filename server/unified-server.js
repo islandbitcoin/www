@@ -185,7 +185,28 @@ let gameConfig = {
 app.use('/api', cors(corsOptions));
 app.use('/api', bodyParser.json());
 
-// Apply rate limiting only to API routes
+// Debug endpoint to check your IP (before rate limiting)
+app.get('/api/check-ip', (req, res) => {
+  const clientIp = getClientIp(req);
+  const headers = {
+    'x-real-ip': req.headers['x-real-ip'],
+    'x-forwarded-for': req.headers['x-forwarded-for'],
+    'x-forwarded-proto': req.headers['x-forwarded-proto'],
+    'connection-remoteAddress': req.connection?.remoteAddress,
+    'socket-remoteAddress': req.socket?.remoteAddress,
+    'req-ip': req.ip
+  };
+  
+  res.json({
+    yourIp: clientIp,
+    isWhitelisted: WHITELISTED_IPS.includes(clientIp),
+    whitelistedIps: WHITELISTED_IPS,
+    headers: headers,
+    trustProxy: app.get('trust proxy')
+  });
+});
+
+// Apply rate limiting only to API routes (after check-ip)
 app.use('/api', generalLimiter);
 
 // ====================
@@ -209,26 +230,6 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
-// Debug endpoint to check your IP
-app.get('/api/check-ip', (req, res) => {
-  const clientIp = getClientIp(req);
-  const headers = {
-    'x-real-ip': req.headers['x-real-ip'],
-    'x-forwarded-for': req.headers['x-forwarded-for'],
-    'x-forwarded-proto': req.headers['x-forwarded-proto'],
-    'connection-remoteAddress': req.connection?.remoteAddress,
-    'socket-remoteAddress': req.socket?.remoteAddress,
-    'req-ip': req.ip
-  };
-  
-  res.json({
-    yourIp: clientIp,
-    isWhitelisted: WHITELISTED_IPS.includes(clientIp),
-    whitelistedIps: WHITELISTED_IPS,
-    headers: headers,
-    trustProxy: app.get('trust proxy')
-  });
-});
 
 // Get game configuration with Redis caching
 app.get('/api/config', authenticateAPI, async (req, res) => {
@@ -361,6 +362,28 @@ app.delete('/api/config', authenticateAPI, configLimiter, async (req, res) => {
   res.json({
     success: true,
     data: gameConfig
+  });
+});
+
+// IP check endpoint (outside of rate limiting)
+app.get('/check-ip', (req, res) => {
+  const clientIp = getClientIp(req);
+  const headers = {
+    'x-real-ip': req.headers['x-real-ip'],
+    'x-forwarded-for': req.headers['x-forwarded-for'],
+    'host': req.headers['host'],
+    'connection-remoteAddress': req.connection?.remoteAddress,
+    'socket-remoteAddress': req.socket?.remoteAddress,
+    'req-ip': req.ip
+  };
+  
+  res.json({
+    yourIp: clientIp,
+    isWhitelisted: WHITELISTED_IPS.includes(clientIp),
+    whitelistedIps: WHITELISTED_IPS.length > 0 ? WHITELISTED_IPS : ['No IPs whitelisted'],
+    headers: headers,
+    trustProxy: app.get('trust proxy'),
+    tip: 'Add this IP to WHITELISTED_IPS in your .env file'
   });
 });
 
