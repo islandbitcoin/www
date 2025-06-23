@@ -36,8 +36,8 @@ export function useGameWallet() {
     // Initial load
     refreshConfig();
     
-    // Check every 5 seconds for server updates
-    const interval = setInterval(refreshConfig, 5000);
+    // Check every 10 seconds for server updates
+    const interval = setInterval(refreshConfig, 10000);
     
     // Also listen for storage events (works within same browser)
     const handleStorageChange = (e: StorageEvent) => {

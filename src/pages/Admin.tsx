@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSeoMeta } from '@unhead/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,8 @@ import {
   QrCode,
   XCircle,
   Clock,
+  Save,
+  RefreshCw,
   Coins
 } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -356,6 +358,7 @@ export default function Admin() {
     canUserEarnMore } = useGameWallet();
   
   const [isReconnecting, setIsReconnecting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Check if browser extension is available
   const hasExtension = typeof window !== 'undefined' && window.nostr;
@@ -798,6 +801,43 @@ export default function Admin() {
                   </Label>
                 </div>
               </CardContent>
+              <CardFooter className="flex justify-end">
+                <Button
+                  onClick={async () => {
+                    setIsSaving(true);
+                    try {
+                      // Force save all current config to server
+                      await gameWalletManager.saveConfig(config);
+                      toast({
+                        title: 'Configuration saved',
+                        description: 'Settings have been synced to the server and will update across all browsers.',
+                      });
+                    } catch (error) {
+                      toast({
+                        title: 'Failed to save',
+                        description: 'Could not sync configuration. Please try again.',
+                        variant: 'destructive'
+                      });
+                    } finally {
+                      setIsSaving(false);
+                    }
+                  }}
+                  disabled={isSaving}
+                  className="bg-caribbean-ocean hover:bg-caribbean-ocean/90"
+                >
+                  {isSaving ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Save Config
+                    </>
+                  )}
+                </Button>
+              </CardFooter>
             </Card>
           </TabsContent>
 
