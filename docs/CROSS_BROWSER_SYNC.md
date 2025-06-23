@@ -70,12 +70,12 @@ If automatic sync isn't working:
 ### Rate Limiting
 
 If you see "Too many requests" errors:
-1. Add your IP to the whitelist (see [DEPLOYMENT.md](./DEPLOYMENT.md))
-2. Or wait a few minutes for the rate limit to reset
+1. The rate limits have been increased to 1000 requests per 15 minutes
+2. If still experiencing issues, wait a few minutes for the rate limit to reset
 
 ## Technical Details
 
 - **Polling Interval**: 10 seconds
-- **Cache TTL**: 5 minutes on server, 1 minute on client
-- **Storage**: Redis for caching, in-memory for persistence
+- **Storage**: Redis for persistent storage across server restarts
+- **Cache TTL**: 5 minutes for performance optimization
 - **Security**: API key authentication required

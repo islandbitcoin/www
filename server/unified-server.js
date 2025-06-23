@@ -19,6 +19,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const API_SECRET = process.env.API_SECRET || 'change-this-secret-in-production';
 const CONFIG_CACHE_KEY = 'island-bitcoin:config';
+const CONFIG_PERSISTENT_KEY = 'island-bitcoin:config:persistent';
 const CONFIG_CACHE_TTL = 300; // 5 minutes
 
 // Trust proxy to get correct IPs when behind Nginx
@@ -115,8 +116,8 @@ const validateConfigUpdate = [
   body('maintenanceMode').optional().isBoolean(),
 ];
 
-// In-memory storage (in production, use a real database)
-let gameConfig = {
+// Default configuration
+const DEFAULT_CONFIG = {
   pullPaymentId: null,
   btcPayServerUrl: null,
   btcPayStoreId: null,
@@ -141,6 +142,24 @@ let gameConfig = {
 
   lastUpdated: null
 };
+
+// Load config from Redis on startup
+let gameConfig = { ...DEFAULT_CONFIG };
+
+// Initialize config from Redis
+(async () => {
+  try {
+    const persistedConfig = await cache.get(CONFIG_PERSISTENT_KEY);
+    if (persistedConfig) {
+      gameConfig = { ...DEFAULT_CONFIG, ...persistedConfig };
+      console.log('📥 Loaded persisted config from Redis');
+    } else {
+      console.log('🆕 No persisted config found, using defaults');
+    }
+  } catch (error) {
+    console.error('❌ Failed to load persisted config:', error);
+  }
+})();
 
 // Apply CORS only to API routes
 app.use('/api', cors(corsOptions));
@@ -200,20 +219,11 @@ app.get('/api/health', async (req, res) => {
 // Get game configuration with Redis caching
 app.get('/api/config', authenticateAPI, async (req, res) => {
   try {
-    // Try to get from cache first
-    const cached = await cache.get(CONFIG_CACHE_KEY);
-    if (cached) {
-      console.log('📦 Config served from cache');
-      return res.json({
-        success: true,
-        data: cached,
-        cached: true
-      });
-    }
-
-    // If not in cache, return in-memory config and cache it
-    if (gameConfig.lastUpdated) {
-      await cache.set(CONFIG_CACHE_KEY, gameConfig, CONFIG_CACHE_TTL);
+    // Always try to get the latest from persistent storage first
+    const persistedConfig = await cache.get(CONFIG_PERSISTENT_KEY);
+    if (persistedConfig) {
+      // Update in-memory config with persisted version
+      gameConfig = { ...DEFAULT_CONFIG, ...persistedConfig };
     }
 
     // Log request without sensitive data
@@ -270,9 +280,15 @@ app.post('/api/config', authenticateAPI, configLimiter, validateConfigUpdate, ha
   
   gameConfig.lastUpdated = new Date().toISOString();
   
-  // Invalidate cache when config is updated
-  await cache.del(CONFIG_CACHE_KEY);
-  // Set new config in cache
+  // Persist config to Redis (no TTL for permanent storage)
+  try {
+    await cache.set(CONFIG_PERSISTENT_KEY, gameConfig, 0);
+    console.log('💾 Config persisted to Redis');
+  } catch (error) {
+    console.error('❌ Failed to persist config:', error);
+  }
+  
+  // Also set in cache for faster access
   await cache.set(CONFIG_CACHE_KEY, gameConfig, CONFIG_CACHE_TTL);
   
   // Log configuration update without sensitive data
@@ -319,11 +335,12 @@ app.delete('/api/config', authenticateAPI, configLimiter, async (req, res) => {
     lastUpdated: new Date().toISOString()
   };
   
-  // Clear cache when config is removed
+  // Clear both cache and persistent storage
   await cache.del(CONFIG_CACHE_KEY);
+  await cache.del(CONFIG_PERSISTENT_KEY);
   
   console.log('Configuration removed');
-  console.log('🗑️ Cache cleared');
+  console.log('🗑️ Cache and persistent storage cleared');
   
   res.json({
     success: true,
