@@ -9,7 +9,10 @@
     "dev:all": "npm i && concurrently \"npm run dev\" \"npm run server\"",
     "build": "npm i && vite build && cp dist/index.html dist/404.html",
     "test": "npm i && tsc -p tsconfig.app.json --noEmit && eslint && vitest run && vite build",
-    "deploy": "npm run build && npx -y nostr-deploy-cli deploy --skip-setup"
+    "deploy": "npm run build && npx -y nostr-deploy-cli deploy --skip-setup",
+    "start": "node server/unified-server.js",
+    "start:prod": "NODE_ENV=production node server/unified-server.js",
+    "deploy:unified": "./deploy-unified.sh"
   },
   "dependencies": {
     "@fontsource-variable/outfit": "^5.2.6",
