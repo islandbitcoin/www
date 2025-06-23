@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, AlertCircle, CheckCircle } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useSetupState } from '@/hooks/useSetupState';
 import { gameWalletManager } from '@/lib/gameWallet';
 import { siteConfig } from '@/config/site.config';
 import { useState } from 'react';
@@ -21,15 +22,20 @@ export default function AdminSetup() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSetup, setIsSetup] = useState(false);
+  const { markSetupComplete } = useSetupState();
 
   const config = gameWalletManager.getConfig();
   const hasAdmins = config.adminPubkeys.length > 0;
 
-  const handleSetupAdmin = () => {
+  const handleSetupAdmin = async () => {
     if (!user) return;
     
     // Add current user as admin
     gameWalletManager.addAdmin(user.pubkey);
+    
+    // Mark setup as complete in Nostr
+    await markSetupComplete([user.pubkey]);
+    
     setIsSetup(true);
     
     toast({
