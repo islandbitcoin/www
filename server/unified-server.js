@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import rateLimit from 'express-rate-limit';
 import { body, validationResult } from 'express-validator';
 import dotenv from 'dotenv';
 import { cache } from './redisClient.js';
@@ -25,30 +24,6 @@ const CONFIG_CACHE_TTL = 300; // 5 minutes
 // Trust proxy to get correct IPs when behind Nginx
 app.set('trust proxy', true);
 
-// Skip rate limiting for static assets
-const skipStaticAssets = (req) => {
-  return req.path.startsWith('/assets/') || 
-         req.path.endsWith('.js') || 
-         req.path.endsWith('.css');
-};
-
-// Rate limiting configurations (increased 10x)
-const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Limit each IP to 1000 requests per windowMs (was 100)
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: skipStaticAssets
-});
-
-const configLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 100, // Limit config updates to 100 per minute (was 10)
-  message: 'Too many config updates, please slow down.',
-  standardHeaders: true,
-  legacyHeaders: false
-});
 
 // CORS configuration for API endpoints only
 const corsOptions = {
@@ -188,14 +163,12 @@ app.get('/api/check-ip', (req, res) => {
     headers: headers,
     trustProxy: app.get('trust proxy'),
     rateLimits: {
-      general: '1000 requests per 15 minutes',
-      config: '100 requests per minute'
+      general: 'No rate limiting',
+      config: 'No rate limiting'
     }
   });
 });
 
-// Apply rate limiting only to API routes (after check-ip)
-app.use('/api', generalLimiter);
 
 // ====================
 // API Routes
@@ -246,7 +219,7 @@ app.get('/api/config', async (req, res) => {
 });
 
 // Update game configuration - ADMIN ONLY endpoint
-app.post('/api/config', authenticateAPI, configLimiter, validateConfigUpdate, handleValidationErrors, async (req, res) => {
+app.post('/api/config', authenticateAPI, validateConfigUpdate, handleValidationErrors, async (req, res) => {
   const {
     pullPaymentId,
     btcPayServerUrl,
@@ -300,7 +273,7 @@ app.post('/api/config', authenticateAPI, configLimiter, validateConfigUpdate, ha
 });
 
 // Remove game configuration - ADMIN ONLY endpoint
-app.delete('/api/config', authenticateAPI, configLimiter, async (req, res) => {
+app.delete('/api/config', authenticateAPI, async (req, res) => {
   gameConfig = {
     pullPaymentId: null,
     btcPayServerUrl: null,
@@ -418,7 +391,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Island Bitcoin Unified Server running on port ${PORT}`);
   console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
   console.log(`⚙️  Config API: http://localhost:${PORT}/api/config`);
-  console.log(`🚦 Rate limits: 1000 req/15min general, 100 req/min config`);
+  console.log(`🚦 Rate limits: Disabled`);
   
   if (fs.existsSync(distPath)) {
     console.log(`🌐 Serving frontend from: ${distPath}`);

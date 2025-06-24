@@ -187,10 +187,50 @@ See [DEPLOYMENT.md](./docs/DEPLOYMENT.md) for the complete DigitalOcean deployme
 ## 🛡️ Security
 
 - **Input Validation**: All user inputs are sanitized
-- **Rate Limiting**: Prevents abuse and spam
 - **CORS Configuration**: Restricts API access
 - **Content Security Policy**: XSS protection
 - **Encrypted Storage**: Sensitive data encryption
+
+### Rate Limiting Alternatives
+
+Since application-level rate limiting has been removed, consider these infrastructure-level alternatives:
+
+1. **Nginx Rate Limiting** (Recommended)
+   ```nginx
+   # In your nginx configuration
+   limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+   limit_req_zone $binary_remote_addr zone=config:1m rate=2r/s;
+   
+   location /api/ {
+       limit_req zone=api burst=20 nodelay;
+       proxy_pass http://localhost:3000;
+   }
+   
+   location /api/config {
+       limit_req zone=config burst=5;
+       proxy_pass http://localhost:3000;
+   }
+   ```
+
+2. **Cloudflare Rate Limiting**
+   - Use Cloudflare's built-in rate limiting rules
+   - Configure through Cloudflare dashboard
+   - Supports complex rules based on path, IP, and headers
+
+3. **DigitalOcean Cloud Firewall**
+   - Configure rate limits at the infrastructure level
+   - Blocks traffic before it reaches your application
+   - Good for DDoS protection
+
+4. **API Gateway Solutions**
+   - Kong, Traefik, or AWS API Gateway
+   - Provides advanced rate limiting with token buckets
+   - Supports per-user and per-API key limits
+
+5. **Redis-based Rate Limiting**
+   - Implement custom rate limiting using Redis
+   - More flexible than nginx for complex scenarios
+   - Can be shared across multiple servers
 
 ## 🤝 Contributing
 
