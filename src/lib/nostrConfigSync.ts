@@ -3,7 +3,7 @@
  * Uses Nostr network to sync configuration across browsers
  */
 
-import { NostrEvent } from '@nostrify/core';
+import { NostrEvent } from '@nostrify/nostrify';
 
 const CONFIG_KIND = 30078; // Application-specific data (NIP-78)
 const CONFIG_D_TAG = 'island-bitcoin-config-v1';

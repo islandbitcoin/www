@@ -27,11 +27,19 @@ import { formatDistanceToNow } from 'date-fns';
 import { useAuthor } from '@/hooks/useAuthor';
 import { genUserName } from '@/lib/genUserName';
 import { NoteContent } from '@/components/social/NoteContent';
-import { Heart, MessageCircle, Repeat2, Zap } from 'lucide-react';
+import { Heart, MessageCircle, Repeat2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { siteConfig } from '@/config/site.config';
 import { useNostrFeed } from '@/hooks/useNostrFeed';
 import { MessageButton } from '@/components/social/MessageButton';
+import { useNostrPublish } from '@/hooks/useNostrPublish';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useNostr } from '@nostrify/react';
+import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 interface NostrFeedProps {
   domains?: string[];
@@ -50,74 +58,261 @@ function PostCard({ event, showSource = false, domains = [] }: {
   const metadata = author.data?.metadata;
   const displayName = metadata?.name ?? genUserName(event.pubkey);
   const profileImage = metadata?.picture;
-  
+  const publishMutation = useNostrPublish();
+  const { user } = useCurrentUser();
+  const { nostr } = useNostr();
+  const [showReplyDialog, setShowReplyDialog] = useState(false);
+  const [replyContent, setReplyContent] = useState('');
   
   // Check if this is a verified community member
   const isVerifiedCommunityMember = metadata?.nip05 && typeof metadata.nip05 === 'string' && domains.some(domain => 
     metadata.nip05?.toLowerCase().endsWith(`@${domain.toLowerCase()}`)
   );
+
+  // Query for reactions and reposts
+  const { data: interactions } = useQuery({
+    queryKey: ['interactions', event.id],
+    queryFn: async () => {
+      if (!nostr) return { likes: [], reposts: [], userLiked: false, userReposted: false };
+      
+      // Get likes (kind 7 with content "+")
+      const likes = await nostr.query([{
+        kinds: [7],
+        '#e': [event.id],
+      }], { signal: AbortSignal.timeout(5000) });
+      
+      // Get reposts (kind 6)
+      const reposts = await nostr.query([{
+        kinds: [6],
+        '#e': [event.id],
+      }], { signal: AbortSignal.timeout(5000) });
+      
+      const likesArray = Array.from(likes) as NostrEvent[];
+      const repostsArray = Array.from(reposts) as NostrEvent[];
+      
+      // Filter to only positive reactions
+      const positiveLikes = likesArray.filter(e => e.content === '+' || e.content === '');
+      
+      return {
+        likes: positiveLikes,
+        reposts: repostsArray,
+        userLiked: user ? positiveLikes.some(e => e.pubkey === user.pubkey) : false,
+        userReposted: user ? repostsArray.some(e => e.pubkey === user.pubkey) : false,
+      };
+    },
+    enabled: !!nostr,
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
+  const handleReply = () => {
+    if (!user) {
+      toast.error('Please login to reply');
+      return;
+    }
+    setShowReplyDialog(true);
+  };
+
+  const submitReply = async () => {
+    if (!user || !replyContent.trim()) return;
+    
+    try {
+      // Create reply event
+      const replyEvent = {
+        kind: 1,
+        content: replyContent,
+        tags: [
+          ['e', event.id, '', 'reply'],
+          ['p', event.pubkey],
+          ...event.tags.filter(tag => tag[0] === 'p'), // Include all mentioned pubkeys
+        ],
+        created_at: Math.floor(Date.now() / 1000),
+      };
+      
+      await publishMutation.mutateAsync(replyEvent);
+      toast.success('Reply posted!');
+      setShowReplyDialog(false);
+      setReplyContent('');
+    } catch (error) {
+      console.error('Failed to post reply:', error);
+      toast.error('Failed to post reply');
+    }
+  };
+
+  const handleRepost = async () => {
+    if (!user) {
+      toast.error('Please login to repost');
+      return;
+    }
+    
+    if (interactions?.userReposted) {
+      toast.info('You already reposted this');
+      return;
+    }
+    
+    try {
+      const repostEvent = {
+        kind: 6,
+        content: JSON.stringify(event),
+        tags: [
+          ['e', event.id, ''],
+          ['p', event.pubkey],
+        ],
+        created_at: Math.floor(Date.now() / 1000),
+      };
+      
+      await publishMutation.mutateAsync(repostEvent);
+      toast.success('Reposted!');
+    } catch (error) {
+      console.error('Failed to repost:', error);
+      toast.error('Failed to repost');
+    }
+  };
+
+  const handleLike = async () => {
+    if (!user) {
+      toast.error('Please login to like');
+      return;
+    }
+    
+    if (interactions?.userLiked) {
+      toast.info('You already liked this');
+      return;
+    }
+    
+    try {
+      const likeEvent = {
+        kind: 7,
+        content: '+',
+        tags: [
+          ['e', event.id, ''],
+          ['p', event.pubkey],
+          ['k', '1'],
+        ],
+        created_at: Math.floor(Date.now() / 1000),
+      };
+      
+      await publishMutation.mutateAsync(likeEvent);
+      toast.success('Liked!');
+    } catch (error) {
+      console.error('Failed to like:', error);
+      toast.error('Failed to like');
+    }
+  };
   
 
   return (
-    <Card className="border-caribbean-sand hover:border-caribbean-ocean/30 transition-all">
-      <CardHeader className="pb-3">
-        <div className="flex items-start gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={profileImage} alt={displayName} loading="lazy" />
-            <AvatarFallback className="bg-caribbean-ocean/10 text-caribbean-ocean">
-              {displayName.slice(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-sm truncate">{displayName}</span>
-              {metadata?.nip05 && (
-                <span className="text-xs text-caribbean-ocean">✓</span>
-              )}
-              {showSource && isVerifiedCommunityMember && (
-                <Badge variant="secondary" className="text-xs bg-caribbean-ocean/10 text-caribbean-ocean">
-                  Community
-                </Badge>
-              )}
+    <>
+      <Card className="border-caribbean-sand hover:border-caribbean-ocean/30 transition-all">
+        <CardHeader className="pb-3">
+          <div className="flex items-start gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={profileImage} alt={displayName} loading="lazy" />
+              <AvatarFallback className="bg-caribbean-ocean/10 text-caribbean-ocean">
+                {displayName.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-sm truncate">{displayName}</span>
+                {metadata?.nip05 && (
+                  <span className="text-xs text-caribbean-ocean">✓</span>
+                )}
+                {showSource && isVerifiedCommunityMember && (
+                  <Badge variant="secondary" className="text-xs bg-caribbean-ocean/10 text-caribbean-ocean">
+                    Community
+                  </Badge>
+                )}
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {formatDistanceToNow(new Date(event.created_at * 1000), { addSuffix: true })}
+              </span>
             </div>
-            <span className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(event.created_at * 1000), { addSuffix: true })}
-            </span>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="pb-3">
-        <div className="whitespace-pre-wrap break-words text-sm">
-          <NoteContent event={event} />
-        </div>
-        <div className="flex items-center gap-1 sm:gap-4 mt-4">
-          <Button variant="ghost" size="sm" className="h-8 px-1 sm:px-2 text-muted-foreground hover:text-caribbean-ocean">
-            <MessageCircle className="h-4 w-4 sm:mr-1" />
-            <span className="text-xs hidden sm:inline">Reply</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="h-8 px-1 sm:px-2 text-muted-foreground hover:text-caribbean-palm">
-            <Repeat2 className="h-4 w-4 sm:mr-1" />
-            <span className="text-xs hidden sm:inline">Repost</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="h-8 px-1 sm:px-2 text-muted-foreground hover:text-caribbean-hibiscus">
-            <Heart className="h-4 w-4 sm:mr-1" />
-            <span className="text-xs hidden sm:inline">Like</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="h-8 px-1 sm:px-2 text-muted-foreground hover:text-caribbean-mango">
-            <Zap className="h-4 w-4 sm:mr-1" />
-            <span className="text-xs hidden sm:inline">Zap</span>
-          </Button>
-          <MessageButton 
-            recipientPubkey={event.pubkey}
-            recipientName={displayName}
-            variant="ghost" 
-            size="sm" 
-            className="h-8 px-1 sm:px-2 text-muted-foreground hover:text-caribbean-ocean"
-            showText={false}
-          />
-        </div>
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent className="pb-3">
+          <div className="whitespace-pre-wrap break-words text-sm">
+            <NoteContent event={event} />
+          </div>
+          <div className="flex items-center gap-1 sm:gap-4 mt-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 px-1 sm:px-2 text-muted-foreground hover:text-caribbean-ocean"
+              onClick={handleReply}
+            >
+              <MessageCircle className="h-4 w-4 sm:mr-1" />
+              <span className="text-xs hidden sm:inline">Reply</span>
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`h-8 px-1 sm:px-2 ${interactions?.userReposted ? 'text-caribbean-palm' : 'text-muted-foreground hover:text-caribbean-palm'}`}
+              onClick={handleRepost}
+            >
+              <Repeat2 className="h-4 w-4 sm:mr-1" />
+              <span className="text-xs hidden sm:inline">
+                {interactions?.reposts.length || 0}
+              </span>
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`h-8 px-1 sm:px-2 ${interactions?.userLiked ? 'text-caribbean-hibiscus' : 'text-muted-foreground hover:text-caribbean-hibiscus'}`}
+              onClick={handleLike}
+            >
+              <Heart className={`h-4 w-4 sm:mr-1 ${interactions?.userLiked ? 'fill-current' : ''}`} />
+              <span className="text-xs hidden sm:inline">
+                {interactions?.likes.length || 0}
+              </span>
+            </Button>
+            <MessageButton 
+              recipientPubkey={event.pubkey}
+              recipientName={displayName}
+              variant="ghost" 
+              size="sm" 
+              className="h-8 px-1 sm:px-2 text-muted-foreground hover:text-caribbean-ocean"
+              showText={false}
+            />
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Dialog open={showReplyDialog} onOpenChange={setShowReplyDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Reply to {displayName}</DialogTitle>
+            <DialogDescription>
+              Write your reply to this post.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Textarea
+              placeholder="What's your reply?"
+              value={replyContent}
+              onChange={(e) => setReplyContent(e.target.value)}
+              className="min-h-[100px]"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowReplyDialog(false);
+                  setReplyContent('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={submitReply}
+                disabled={!replyContent.trim() || publishMutation.isPending}
+              >
+                {publishMutation.isPending ? 'Posting...' : 'Post Reply'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
