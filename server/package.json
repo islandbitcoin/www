@@ -2,11 +2,11 @@
   "name": "island-bitcoin-sync-server",
   "version": "1.0.0",
   "description": "Minimal sync server for Island Bitcoin game configuration",
-  "main": "server.js",
+  "main": "unified-server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node unified-server.js",
+    "dev": "node unified-server.js"
   },
   "dependencies": {
     "body-parser": "^1.20.2",
