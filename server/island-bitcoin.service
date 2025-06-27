@@ -1,0 +1,28 @@
+[Unit]
+Description=Island Bitcoin Server
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/islandbitcoin/server
+Environment="NODE_ENV=production"
+Environment="PORT=3000"
+ExecStart=/usr/bin/node unified-server.js
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=append:/var/log/island-bitcoin/server.log
+StandardError=append:/var/log/island-bitcoin/error.log
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/islandbitcoin/server
+
+[Install]
+WantedBy=multi-user.target

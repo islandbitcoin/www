@@ -175,9 +175,16 @@ app.get('/api/health', async (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
+    version: '2.0.0', // Updated after removing rate limiting
+    serverFile: 'unified-server.js',
     redis: {
       connected: redisConnected,
       status: redisConnected ? 'healthy' : 'disconnected'
+    },
+    rateLimit: 'disabled',
+    auth: {
+      configRead: 'public',
+      configWrite: 'api-key-required'
     }
   });
 });
