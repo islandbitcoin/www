@@ -814,20 +814,6 @@ export default function Admin() {
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">sats</span>
                     </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="trivia-limit" className="text-sm">Trivia Per Hour Limit</Label>
-                    <Input
-                      id="trivia-limit"
-                      type="number"
-                      value={config.rateLimits.triviaPerHour}
-                      onChange={(e) => updateConfig({
-                        rateLimits: {
-                          ...config.rateLimits,
-                          triviaPerHour: parseInt(e.target.value) || 0 }
-                      })}
-                    />
-                  </div>
                 </div>
 
                 <div className="flex items-center space-x-2">

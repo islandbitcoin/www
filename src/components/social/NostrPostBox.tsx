@@ -7,7 +7,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Send, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
 import { sanitizeNostrContent } from '@/lib/sanitize';
-import { postRateLimiter } from '@/lib/rateLimit';
 import { useGameification } from '@/hooks/useGameification';
 
 export function NostrPostBox() {
@@ -29,15 +28,6 @@ export function NostrPostBox() {
       return;
     }
 
-    // Check rate limit
-    if (!postRateLimiter.canMakeRequest(user?.pubkey || 'anonymous')) {
-      toast({
-        title: 'Slow down!',
-        description: 'You\'re posting too quickly. Take a breath and try again in a moment.',
-        variant: 'destructive',
-      });
-      return;
-    }
 
     // Sanitize content before posting
     const sanitizedContent = sanitizeNostrContent(content.trim());

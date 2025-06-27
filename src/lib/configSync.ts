@@ -29,12 +29,6 @@ export interface SyncConfig {
     referralBonus: number;
   } | null;
 
-  // Rate Limits
-  rateLimits: {
-    triviaPerHour: number;
-    withdrawalsPerDay: number;
-    maxStreakBonus: number;
-  } | null;
 
   // Admin Settings
   adminPubkeys: string[] | null;

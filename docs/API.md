@@ -55,11 +55,6 @@ Retrieve the current configuration.
     "achievementBonus": 25,
     "referralBonus": 100
   },
-  "rateLimits": {
-    "triviaPerHour": 10,
-    "withdrawalsPerDay": 3,
-    "maxStreakBonus": 500
-  },
   "adminPubkeys": ["npub1..."],
   "requireApprovalAbove": 5000,
   "maintenanceMode": false

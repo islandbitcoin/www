@@ -30,12 +30,6 @@ export interface NostrSyncConfig {
     referralBonus: number;
   } | null;
 
-  // Rate Limits
-  rateLimits: {
-    triviaPerHour: number;
-    withdrawalsPerDay: number;
-    maxStreakBonus: number;
-  } | null;
 
   // Admin Settings
   adminPubkeys: string[] | null;
@@ -103,7 +97,6 @@ class NostrConfigSyncService {
         minWithdrawal: null,
         withdrawalFee: null,
         gameRewards: null,
-        rateLimits: null,
         adminPubkeys: null,
         requireApprovalAbove: null,
         maintenanceMode: null,

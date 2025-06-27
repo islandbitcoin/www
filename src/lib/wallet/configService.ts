@@ -56,7 +56,6 @@ export class ConfigService {
         if ('minWithdrawal' in updates) syncConfig.minWithdrawal = updates.minWithdrawal;
         if ('withdrawalFee' in updates) syncConfig.withdrawalFee = updates.withdrawalFee;
         if ('gameRewards' in updates) syncConfig.gameRewards = updates.gameRewards;
-        if ('rateLimits' in updates) syncConfig.rateLimits = updates.rateLimits;
         if ('adminPubkeys' in updates) syncConfig.adminPubkeys = updates.adminPubkeys;
         if ('requireApprovalAbove' in updates) syncConfig.requireApprovalAbove = updates.requireApprovalAbove;
         if ('maintenanceMode' in updates) syncConfig.maintenanceMode = updates.maintenanceMode;
@@ -83,7 +82,6 @@ export class ConfigService {
       if ('minWithdrawal' in updates) nostrConfig.minWithdrawal = updates.minWithdrawal;
       if ('withdrawalFee' in updates) nostrConfig.withdrawalFee = updates.withdrawalFee;
       if ('gameRewards' in updates) nostrConfig.gameRewards = updates.gameRewards;
-      if ('rateLimits' in updates) nostrConfig.rateLimits = updates.rateLimits;
       if ('adminPubkeys' in updates) nostrConfig.adminPubkeys = updates.adminPubkeys;
       if ('requireApprovalAbove' in updates) nostrConfig.requireApprovalAbove = updates.requireApprovalAbove;
       if ('maintenanceMode' in updates) nostrConfig.maintenanceMode = updates.maintenanceMode;
@@ -134,7 +132,6 @@ export class ConfigService {
       if (serverConfig.minWithdrawal !== undefined && serverConfig.minWithdrawal !== null) mergedConfig.minWithdrawal = serverConfig.minWithdrawal;
       if (serverConfig.withdrawalFee !== undefined && serverConfig.withdrawalFee !== null) mergedConfig.withdrawalFee = serverConfig.withdrawalFee;
       if (serverConfig.gameRewards) mergedConfig.gameRewards = serverConfig.gameRewards;
-      if (serverConfig.rateLimits) mergedConfig.rateLimits = serverConfig.rateLimits;
       if (serverConfig.adminPubkeys) {
         mergedConfig.adminPubkeys = serverConfig.adminPubkeys;
       }

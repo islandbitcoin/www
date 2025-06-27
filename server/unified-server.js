@@ -81,10 +81,6 @@ const validateConfigUpdate = [
   body('gameRewards.dailyChallenge').optional().isInt({ min: 0, max: 10000 }),
   body('gameRewards.achievementBonus').optional().isInt({ min: 0, max: 10000 }),
   body('gameRewards.referralBonus').optional().isInt({ min: 0, max: 10000 }),
-  body('rateLimits').optional().isObject(),
-  body('rateLimits.triviaPerHour').optional().isInt({ min: 1, max: 100 }),
-  body('rateLimits.withdrawalsPerDay').optional().isInt({ min: 1, max: 10 }),
-  body('rateLimits.maxStreakBonus').optional().isInt({ min: 0, max: 10000 }),
   body('adminPubkeys').optional().isArray(),
   body('adminPubkeys.*').optional().isString().matches(/^[a-fA-F0-9]{64}$/),
   body('requireApprovalAbove').optional().isInt({ min: 0, max: 1000000 }),
@@ -107,8 +103,6 @@ const DEFAULT_CONFIG = {
   // Game Rewards
   gameRewards: null,
 
-  // Rate Limits
-  rateLimits: null,
 
   // Admin Settings
   adminPubkeys: null,
@@ -230,7 +224,6 @@ app.post('/api/config', authenticateAPI, validateConfigUpdate, handleValidationE
     minWithdrawal,
     withdrawalFee,
     gameRewards,
-    rateLimits,
     adminPubkeys,
     requireApprovalAbove,
     maintenanceMode
@@ -246,7 +239,6 @@ app.post('/api/config', authenticateAPI, validateConfigUpdate, handleValidationE
   if (minWithdrawal !== undefined) gameConfig.minWithdrawal = minWithdrawal;
   if (withdrawalFee !== undefined) gameConfig.withdrawalFee = withdrawalFee;
   if (gameRewards !== undefined) gameConfig.gameRewards = gameRewards;
-  if (rateLimits !== undefined) gameConfig.rateLimits = rateLimits;
   if (adminPubkeys !== undefined) gameConfig.adminPubkeys = adminPubkeys;
   if (requireApprovalAbove !== undefined) gameConfig.requireApprovalAbove = requireApprovalAbove;
   if (maintenanceMode !== undefined) gameConfig.maintenanceMode = maintenanceMode;
@@ -289,8 +281,6 @@ app.delete('/api/config', authenticateAPI, async (req, res) => {
     // Game Rewards
     gameRewards: null,
 
-    // Rate Limits
-    rateLimits: null,
 
     // Admin Settings
     adminPubkeys: null,
@@ -356,8 +346,8 @@ if (fs.existsSync(distPath)) {
       headers: headers,
       trustProxy: app.get('trust proxy'),
       rateLimits: {
-        general: '1000 requests per 15 minutes',
-        config: '100 requests per minute'
+        general: 'No rate limiting',
+        config: 'No rate limiting'
       }
     });
   });

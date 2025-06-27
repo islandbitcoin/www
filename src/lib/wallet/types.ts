@@ -19,12 +19,6 @@ export interface GameWalletConfig {
     referralBonus: number;
   };
 
-  // Anti-Abuse Settings
-  rateLimits: {
-    triviaPerHour: number;
-    withdrawalsPerDay: number;
-    maxStreakBonus: number;
-  };
 
   // Admin Settings
   adminPubkeys: string[]; // Nostr pubkeys with admin access
@@ -94,11 +88,6 @@ export const DEFAULT_CONFIG: GameWalletConfig = {
     dailyChallenge: 50,
     achievementBonus: 25,
     referralBonus: 100,
-  },
-  rateLimits: {
-    triviaPerHour: 10,
-    withdrawalsPerDay: 3,
-    maxStreakBonus: 500,
   },
   adminPubkeys: [], // No default admins - first user to access admin setup becomes admin
   requireApprovalAbove: 5000,
